@@ -2,75 +2,41 @@
 
 #ifndef t2fs_file
 
+/**************************************************
+    ESSA ESTRUTURA DEVE SER COMPLETADA PELO ALUNO *
+***************************************************/
+typedef struct
+{
+    int currentBlock;
+    unsigned char posInBlock;
+} t2fs_find;
 
+/**************************************
+    N�O ALTERAR ESSA PARTE DO ARQUIVO *
+***************************************/
+typedef int t2fs_file;
 
-#define TYPEVAL_REGULAR     0x01
-#define TYPEVAL_DIRETORIO   0x02
-#define TYPEVAL_INVALIDO    0xFF
+typedef struct
+{
+    unsigned char   name[40];
+    unsigned int    blocksFileSize;
+    unsigned int    bytesFileSize;
+    unsigned int    dataPtr[2];
+    unsigned int    singleIndPtr;
+    unsigned int    doubleIndPtr;
+} __attribute__((packed)) t2fs_record;
 
-typedef int FILE2;
-typedef int DIR2;
+char *t2fs_identify(void);
+t2fs_file t2fs_create (char *nome);
+int t2fs_delete (char *nome);
+t2fs_file t2fs_open (char *nome);
+int t2fs_close (t2fs_file handle);
+int t2fs_read (t2fs_file handle, char *buffer, int size);
+int t2fs_write (t2fs_file handle, char *buffer, int size);
+int t2fs_seek (t2fs_file handle, unsigned int offset);
+int t2fs_first (t2fs_find *findStruct);
+int t2fs_next (t2fs_find *findStruct, t2fs_record *dirFile);
 
-typedef unsigned char BYTE;
-typedef unsigned short int WORD;
-typedef unsigned int DWORD;
+void sair(void);
 
-
-/** Registro de diretório (entrada de diretório) */
-
-
-struct t2fs_record {
-    BYTE    TypeVal;
-    char    name[31];
-    DWORD   blocksFileSize;
-    DWORD   bytesFileSize;
-    DWORD   dataPtr[4];
-    DWORD   singleIndPtr;
-    DWORD   doubleIndPtr;
-} __attribute__((packed));
-
-
-
-/** Superbloco */
-struct t2fs_superbloco {
-    char    Id[4];          /* Identificação do sistema de arquivo. É formado pelas letras T2FS. */
-    WORD    Version;        /* Versão atual desse sistema de arquivos: (valor fixo 7DE=2014; 2=2 semestre). */
-    WORD    SuperBlockSize; /* Quantidade de setores  que formam o superbloco. (fixo em 1 setor) */
-    DWORD   DiskSize;       /* Tamanho total da partição T2FS, incluindo o tamanho do superblock. */
-    DWORD   NofBlocks;      /* Quantidade total de blocos de dados na partição T2FS (1024 blocos). */
-    DWORD   BlockSize;      /* Tamanho de um bloco.*/
-    char    Reserved[108];  /* Não usados */
-    //struct t2fs_record BitMapReg;  /* Registro que descreve o arquivo que mantém o bitmap de blocos livres e ocupados */
-   // struct t2fs_record RootDirReg; /* Registro que descreve o arquivo que mantém as entradas do diretório raiz */
-} __attribute__((packed));
-
-
-#define MAX_FILE_NAME_SIZE 255
-typedef struct {
-    char name[MAX_FILE_NAME_SIZE+1];
-    int fileType;   // ==1, is directory; ==0 is file
-    unsigned long fileSize;
-} DIRENT2;
-
-int identify2 (char *name, int size);
-
-FILE2 create2 (char *filename);
-int delete2 (char *filename);
-FILE2 open2 (char *filename);
-int close2 (FILE2 handle);
-int read2 (FILE2 handle, char *buffer, int size);
-int write2 (FILE2 handle, char *buffer, int size);
-int seek2 (FILE2 handle, unsigned int offset);
-
-int mkdir2 (char *pathname);
-int rmdir2 (char *pathname);
-
-DIR2 opendir2 (char *pathname);
-int readdir2 (DIR2 handle, DIRENT2 *dentry);
-int closedir2 (DIR2 handle);
-
-int chdir2 (char *pathname);
-int getcwd2 (char *pathname, int size);
-
-void GetDiskInformation2(void);
 #endif
