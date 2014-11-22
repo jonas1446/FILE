@@ -33,23 +33,23 @@
 		</Compiler>
 		<Unit filename="../Geometria_Disco.txt" />
 		<Unit filename="../README.md" />
-		<Unit filename="../apidisk.h" />
-		<Unit filename="../chamador" />
-		<Unit filename="../chamador.c">
+		<Unit filename="../include/apidisk.h" />
+		<Unit filename="../src/chamador" />
+		<Unit filename="../src/chamador.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../chamadorold.c">
+		<Unit filename="../src/chamadorold.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../directory.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../libapidisk.a" />
+		<Unit filename="../lib/libapidisk.a" />
 		<Unit filename="../makefile" />
-		<Unit filename="../t2fs.c">
+		<Unit filename="../src/t2fs.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../t2fs.h" />
+		<Unit filename="../include/t2fs.h" />
 		<Unit filename="../t2fs.o" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
