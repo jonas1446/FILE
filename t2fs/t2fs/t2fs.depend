@@ -1,0 +1,15 @@
+# depslib dependency file v1.0
+1386623536 source:/home/grad/jrflores/Downloads/t2fs/chamadorold.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"t2fs.h"
+
+1386623536 /home/grad/jrflores/Downloads/t2fs/t2fs.h
+
+1416430618 source:/home/grad/jrflores/Downloads/t2fs/chamador.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"t2fs.h"
+
