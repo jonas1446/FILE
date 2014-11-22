@@ -40,7 +40,7 @@ struct t2fs_superbloco {
     DWORD   NofBlocks;      /* Quantidade total de blocos de dados na partição T2FS (1024 blocos). */
     DWORD   BlockSize;      /* Tamanho de um bloco.*/
     char    Reserved[108];  /* Não usados */
-   // struct t2fs_record BitMapReg;  /* Registro que descreve o arquivo que mantém o bitmap de blocos livres e ocupados */
+    //struct t2fs_record BitMapReg;  /* Registro que descreve o arquivo que mantém o bitmap de blocos livres e ocupados */
    // struct t2fs_record RootDirReg; /* Registro que descreve o arquivo que mantém as entradas do diretório raiz */
 } __attribute__((packed));
 
@@ -71,3 +71,6 @@ int closedir2 (DIR2 handle);
 
 int chdir2 (char *pathname);
 int getcwd2 (char *pathname, int size);
+
+void GetDiskInformation2(void);
+#endif
