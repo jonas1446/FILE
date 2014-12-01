@@ -1,9 +1,24 @@
-all: clear t2fs.o
-	gcc -o src/chamadorold src/chamadorold.c t2fs.o lib/libapidisk.a -W
-	./chamadorold
+makefile: libt2fs.a
+	gcc -o bin/teste1 teste/teste1.c -I./include -L./lib -lt2fs -lapidisk -Wall
 
-t2fs.o:
-	gcc -c src/t2fs.c -W
+libt2fs.a: bin/t2fs.o bin/diskblocks.o bin/filecontrol.o
+	ar crs lib/libt2fs.a bin/t2fs.o bin/diskblocks.o bin/filecontrol.o lib/libapidisk.a
 
-clear:
-	rm -rf *.o
+bin/t2fs.o:  src/t2fs.c
+	gcc -c src/t2fs.c -o bin/t2fs.o -I./include -Wall
+
+bin/diskblocks.o: src/diskblocks.c
+	gcc -c src/diskblocks.c -o bin/diskblocks.o -I./include -Wall
+
+bin/filecontrol.o: src/filecontrol.c
+	gcc -c src/filecontrol.c -o bin/filecontrol.o -I./include -Wall
+
+clean:
+	rm lib/libt2fs.a bin/*.o
+	rm bin/mkdirt2
+	rm bin/cpy2t2
+	rm bin/dirt2
+	rm bin/rmdirt2
+	rm bin/teste1
+	rm bin/teste2
+	rm bin/teste3
