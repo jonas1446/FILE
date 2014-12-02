@@ -7,90 +7,16 @@
 #include <diskblocks.h>
 #include <filecontrol.h>
 
-/** Retorna a identificação dos implementadores do T2FS. */
-char *t2fs_identify (void);
-
-/** Função usada para criar um novo arquivo no disco. */
-t2fs_file t2fs_create (char *nome);
-
-/** Função usada para remover (apagar) um arquivo do disco. */
-int t2fs_delete (char *nome);
-
-/** Função que abre um arquivo existente no disco. */
-t2fs_file t2fs_open (char *nome);
-
-/** Função usada para fechar um arquivo. */
-int t2fs_close (t2fs_file handle);
-
-/** Função usada para realizar a leitura em um arquivo. */
-int t2fs_read (t2fs_file handle, char *buffer, int size);
-
-/** Função usada para realizar a escrita em um arquivo. */
-int t2fs_write (t2fs_file handle, char *buffer, int size);
-
-/** Altera o contador de posição (current pointer) do arquivo. */
-int t2fs_seek (t2fs_file handle, unsigned int offset);
-
-
-/** Funções auxiliares **/
-/** Função que separa o caminho do arquivo em endereço e o nome do arquivo **/
-// Retorna -1 se caminho 
-int getNameAddress(char * nome, char ** fileName, char ** address);
-
-t2fs_record* EmptyRecordDoubleIndPtr(unsigned int block, unsigned int* recordBlock, char * fileName,BOOL* isTheSameFile);
-
-t2fs_record* EmptyRecordSingleIndPtr(unsigned int block, unsigned int* recordBlock, char * fileName, BOOL* isTheSameFile);
-
-void removeBlocksFromFile(t2fs_record * fileRecord);
-
-void removeRecordBlockFromDirectory(DWORD recordBlock, t2fs_record * directoryRecord);
-
-t2fs_record* findEmptyRecord(unsigned int block,  char * fileName, BOOL* isTheSameFile);
-
-t2fs_record * newFileRecord(char * name, t2fs_record * newFileRecord);
-
-void writeNewFileRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome);
-
-void writeRecord(unsigned int recordBlock, t2fs_record* fileRecord);
-
-int removeRecord(unsigned int recordBlock, t2fs_record* fileRecord);
-
-void printRecordBlock(unsigned int block);
-void printDataBlock(unsigned int block);
-void printIndexBlock(unsigned int block);
-
-int numberOfBlocksToBeAllocated(DWORD lastBlock, DWORD firstBlock, unsigned int handle);
-int allocateNewBlock (int handle, int block, t2fs_record* record);
-
-/** READ WRITE **/
-int calcNumberOfBlocks(unsigned int begin, unsigned int end);
-DWORD getRealBlock(t2fs_record * fileRecord, DWORD block);
-int calcFistBlock(unsigned int begin);
-int calcLastBlock(unsigned int end);
-int calcFirstBlockOffset(unsigned int begin);
-int calcLastBlockOffset(unsigned int end);
-
-void dirt2(char* nome);
-void dirt2DataPtr(unsigned int block);
-void dirt2SingleIndPtr(unsigned int block);
-void dirt2DoubleIndPtr(unsigned int block);
-
-t2fs_record * newDirectoryRecord(char * name, t2fs_record * newDirectoryRecord);
-void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome);
-t2fs_file t2fs_createDirectory (char * nome);
-int t2fs_deleteDirectory (char *name);
-
-/** Retorna a identificação dos implementadores do T2FS. */
-char *t2fs_identify (void)
+/** Informa a identificação dos desenvolvedores do T2FS. */
+int identify2 (char *name, int size)
 {
-	int size = 66;
-	char * developers;
-	developers = malloc(size);
-	memcpy(developers, "Alexandre Gustavo Wermann (218767) e Felipe Salerno Prado (219829)", size);
-	return developers;
+	authors = malloc(size);
+	memcpy(authors, name, size);
+	return 0;
 }
 
-t2fs_file t2fs_create (char * nome)
+//t2fs_file t2fs_create (char * nome)
+FILE2 create2 (char *filename)
 {
 	// Entrada:
 	// Ex.: /dir1/arquivo
@@ -109,7 +35,7 @@ t2fs_file t2fs_create (char * nome)
 	BOOL isTheSameFile = FALSE;
 	BOOL isThereSameNameFile = FALSE;
 	
-	invalidAddress = getNameAddress(nome, &fileName, &address);
+	invalidAddress = getNameAddress(filename, &fileName, &address);
 
 	// Impossível criar arquivo
 	if(invalidAddress == -1)	
@@ -126,7 +52,7 @@ t2fs_file t2fs_create (char * nome)
 		return -1;	
 	
 
-	sameNameFileRecord = findRecord(nome, TYPEVAL_REGULAR, &freeBlock);
+	sameNameFileRecord = findRecord(filename, TYPEVAL_REGULAR, &freeBlock);
 
 	if (sameNameFileRecord != NULL)
 		isThereSameNameFile = TRUE;
@@ -303,14 +229,15 @@ t2fs_file t2fs_create (char * nome)
 	/*if(fileRecord != NULL)
 		return -1;*/
 
-	writeNewFileRecord(recordBlock, fileRecord, nome);
+	writeNewFileRecord(recordBlock, fileRecord, filename);
 
 	//printRecordBlock(emptyRecordBlock);
 	
-	return t2fs_open(nome);
+	return open2(filename);
 
 }
 
+//void writeNewFileRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome)
 void writeNewFileRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome)
 {
 	t2fs_record* loadedBlock;
@@ -343,6 +270,7 @@ void writeNewFileRecord (unsigned int recordBlock, t2fs_record* fileRecord, char
 			
 }
 
+//void writeRecord (unsigned int recordBlock, t2fs_record* fileRecord)
 void writeRecord (unsigned int recordBlock, t2fs_record* fileRecord)
 {
 	t2fs_record* loadedBlock;
@@ -373,6 +301,7 @@ void writeRecord (unsigned int recordBlock, t2fs_record* fileRecord)
 
 // Remove record de um bloco de records
 // Retorna -1 se o record é o último do bloco
+//int removeRecord(unsigned int recordBlock, t2fs_record * fileRecord)
 int removeRecord(unsigned int recordBlock, t2fs_record * fileRecord)
 {
 	t2fs_record* loadedBlock;
@@ -406,6 +335,7 @@ int removeRecord(unsigned int recordBlock, t2fs_record * fileRecord)
 
 
 // Aloca área do disco para dados e cria record para arquivo
+//t2fs_record * newFileRecord(char * name, t2fs_record * newFileRecord)
 t2fs_record * newFileRecord(char * name, t2fs_record * newFileRecord)
 {
 	unsigned int freeBlockNumber;
@@ -441,6 +371,7 @@ t2fs_record * newFileRecord(char * name, t2fs_record * newFileRecord)
 
 // Procura pelo bloco onde será salvo o descritor do arquivo
 ///// VERIFICAR SE JÁ EXISTE O NOME
+//t2fs_record* findEmptyRecord(unsigned int block,  char * fileName , BOOL* isTheSameFile
 t2fs_record* findEmptyRecord(unsigned int block,  char * fileName , BOOL* isTheSameFile){
 
 	t2fs_record * loadedBlock;
@@ -484,6 +415,7 @@ t2fs_record* findEmptyRecord(unsigned int block,  char * fileName , BOOL* isTheS
 }
 
 // Desaloca todos os blocos que o arquivo possui
+//void removeBlocksFromFile(t2fs_record * fileRecord)
 void removeBlocksFromFile(t2fs_record * fileRecord)
 {
 	int i, j;
@@ -548,6 +480,7 @@ void removeBlocksFromFile(t2fs_record * fileRecord)
 
 
 // Remove bloco de record do diretório informado
+//void removeRecordBlockFromDirectory(DWORD recordBlock, t2fs_record * directoryRecord)
 void removeRecordBlockFromDirectory(DWORD recordBlock, t2fs_record * directoryRecord)
 {
 	int i, j;
@@ -617,7 +550,7 @@ void removeRecordBlockFromDirectory(DWORD recordBlock, t2fs_record * directoryRe
 }
 
 
-
+//t2fs_record* EmptyRecordSingleIndPtr(unsigned int block, unsigned int* recordBlock, char
 t2fs_record* EmptyRecordSingleIndPtr(unsigned int block, unsigned int* recordBlock, char * fileName, BOOL* isTheSameFile){
 
 	DWORD * loadedBlock;
@@ -658,7 +591,7 @@ t2fs_record* EmptyRecordSingleIndPtr(unsigned int block, unsigned int* recordBlo
  
 }
 
-
+//t2fs_record* EmptyRecordDoubleIndPtr(unsigned int block, unsigned int* recordBlock, char * fileName, BOOL* isTheSameFile)
 t2fs_record* EmptyRecordDoubleIndPtr(unsigned int block, unsigned int* recordBlock, char * fileName, BOOL* isTheSameFile){
 
 	DWORD * loadedBlock;
@@ -699,6 +632,7 @@ t2fs_record* EmptyRecordDoubleIndPtr(unsigned int block, unsigned int* recordBlo
 
 
 // Separa o nome do arquivo do path (string)
+//int getNameAddress(char * nome, char ** fileName, char ** address)
 int getNameAddress(char * nome, char ** fileName, char ** address)
 {
 	int barPosition = 0;
@@ -744,6 +678,7 @@ int getNameAddress(char * nome, char ** fileName, char ** address)
 
 }
 
+//void printRecordBlock(unsigned int block)
 void printRecordBlock(unsigned int block)
 {
  int i;
@@ -770,6 +705,7 @@ void printRecordBlock(unsigned int block)
 
 }
 
+//void printDataBlock(unsigned int block)
 void printDataBlock(unsigned int block)
 {
  int i;
@@ -786,6 +722,7 @@ void printDataBlock(unsigned int block)
 
 }
 
+//void printIndexBlock(unsigned int block)
 void printIndexBlock(unsigned int block)
 {
 	 int i;
@@ -803,19 +740,20 @@ void printIndexBlock(unsigned int block)
 
 
 /******* T2FS_OPEN  *******/
-t2fs_file t2fs_open(char * nome)
+//t2fs_file t2fs_open(char * nome)
+FILE2 open2(char *filename)
 {
 
 	unsigned int fileBlock;
-	t2fs_file handle;
+	FILE2 handle;
 
 	t2fs_record * fileRecord = NULL;
 
-	puts(nome);
+	puts(filename);
 
-	fileRecord = findRecord(nome, TYPEVAL_REGULAR, &fileBlock);
+	fileRecord = findRecord(filename, TYPEVAL_REGULAR, &fileBlock);
 
-	puts(nome);
+	puts(filename);
 
 	// Não achou o arquivo
 	if(fileRecord == NULL)
@@ -828,14 +766,16 @@ t2fs_file t2fs_open(char * nome)
 
 
 /****** T2FS_CLOSE ******/
-int t2fs_close(t2fs_file handle)
+//int t2fs_close(t2fs_file handle)
+int close2 (FILE2 handle)
 {
 	return removeFileTAAP(handle);
 }
 
 
 /**** T2FS READ ****/
-int t2fs_read(t2fs_file handle, char * buffer, int size)
+//int t2fs_read(t2fs_file handle, char * buffer, int size)
+int read2 (FILE2 handle, char *buffer, int size)
 {
 	// Tamanho inválido
 	if(size <= 0)
@@ -929,31 +869,37 @@ int t2fs_read(t2fs_file handle, char * buffer, int size)
 
 }
 
+//int calcNumberOfBlocks(unsigned int begin, unsigned int end)
 int calcNumberOfBlocks(unsigned int begin, unsigned int end)
 {
 	return end - begin + 1;
 }
 
+//int calcFistBlock(unsigned int begin)
 int calcFistBlock(unsigned int begin)
 {
 	return begin/BLOCK_SIZE;
 }
 
+//int calcFirstBlockOffset(unsigned int begin)
 int calcFirstBlockOffset(unsigned int begin)
 {
 	return begin%BLOCK_SIZE;
 }
 
+//int calcLastBlock(unsigned int end)
 int calcLastBlock(unsigned int end)
 {
 	return end/BLOCK_SIZE;
 }
 
+//int calcLastBlockOffset(unsigned int end)
 int calcLastBlockOffset(unsigned int end)
 {
 	return end%BLOCK_SIZE;
 }
 
+//DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 {
 
@@ -1016,7 +962,8 @@ DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 }
 
 /** Atualiza ponteiro **/
-int t2fs_seek (t2fs_file handle, unsigned int offset)
+//int t2fs_seek (t2fs_file handle, unsigned int offset)
+int seek2 (FILE2 handle, unsigned int offset)
 {
 
 	// Retorna o record do arquivo
@@ -1044,7 +991,8 @@ int t2fs_seek (t2fs_file handle, unsigned int offset)
 }
 
 /** Deleta arquivo **/
-int t2fs_delete (char * name)
+//int t2fs_delete (char * name)
+int delete2 (char * filename)
 {
 
 	t2fs_record * fileRecord;
@@ -1057,11 +1005,11 @@ int t2fs_delete (char * name)
 	char * address;
 
 	// Arquivo não encontrado
-	if(getNameAddress(name, &fileName, &address) == -1)
+	if(getNameAddress(filename, &fileName, &address) == -1)
 		return -1;
 
 	// Acha o arquivo
-	fileRecord = findRecord(name,TYPEVAL_REGULAR,&fileRecordBlock);
+	fileRecord = findRecord(filename,TYPEVAL_REGULAR,&fileRecordBlock);
 
 	// Não encontrou o arquivo
 	if(fileRecord == NULL)
@@ -1111,8 +1059,8 @@ int t2fs_delete (char * name)
 
 
 /** Função write **/
-
-int t2fs_write(t2fs_file handle, char * buffer, int size)
+//int t2fs_write(t2fs_file handle, char * buffer, int size)
+int write2 (FILE2 handle, char *buffer, int size)
 {
 	// Tamanho inválido
 	if(size <= 0)
@@ -1258,7 +1206,7 @@ int t2fs_write(t2fs_file handle, char * buffer, int size)
 	return size;
 }
 
-
+//int numberOfBlocksToBeAllocated(DWORD lastBlock, DWORD firstBlock, unsigned int handle)
 int numberOfBlocksToBeAllocated(DWORD lastBlock, DWORD firstBlock, unsigned int handle)
 {
 
@@ -1308,7 +1256,7 @@ int numberOfBlocksToBeAllocated(DWORD lastBlock, DWORD firstBlock, unsigned int 
 
 
 
-
+//int allocateNewBlock (int handle, int block, t2fs_record* record)
 int allocateNewBlock (int handle, int block, t2fs_record* record)
 {
 
@@ -1425,6 +1373,7 @@ int allocateNewBlock (int handle, int block, t2fs_record* record)
 
 }
 
+//void dirt2(char* nome){
 void dirt2(char* nome){
 
 	t2fs_record * sameNameFileRecord = NULL;
@@ -1448,7 +1397,7 @@ void dirt2(char* nome){
 	}
 }
 
-
+//void dirt2DataPtr(unsigned int block){
 void dirt2DataPtr(unsigned int block){
 
 	t2fs_record * loadedBlock;
@@ -1477,6 +1426,7 @@ void dirt2DataPtr(unsigned int block){
 
 }
 
+//void dirt2SingleIndPtr(unsigned int block){
 void dirt2SingleIndPtr(unsigned int block){
 
 	DWORD * loadedBlock;
@@ -1492,7 +1442,7 @@ void dirt2SingleIndPtr(unsigned int block){
 	}
 }
 
-
+//void dirt2DoubleIndPtr(unsigned int block){
 void dirt2DoubleIndPtr(unsigned int block){
 
 	DWORD * loadedBlock;
@@ -1510,7 +1460,8 @@ void dirt2DoubleIndPtr(unsigned int block){
 	
 }
 
-t2fs_file t2fs_createDirectory (char * nome)
+//t2fs_file t2fs_createDirectory (char * nome)
+int mkdir2 (char *pathname)
 {
 	// Entrada:
 	// Ex.: /dir1/arquivo
@@ -1530,7 +1481,7 @@ t2fs_file t2fs_createDirectory (char * nome)
 	BOOL isThereSameNameFile = FALSE;
 	
 	
-	invalidAddress = getNameAddress(nome, &fileName, &address);
+	invalidAddress = getNameAddress(pathname, &fileName, &address);
 
 	// Impossível criar arquivo
 	if(invalidAddress == -1)	
@@ -1548,7 +1499,7 @@ t2fs_file t2fs_createDirectory (char * nome)
 		return -1;	
 	}
 
-	sameNameFileRecord = findRecord(nome, TYPEVAL_DIRETORIO, &freeBlock);
+	sameNameFileRecord = findRecord(pathname, TYPEVAL_DIRETORIO, &freeBlock);
 
 	if (sameNameFileRecord != NULL)
 		isThereSameNameFile = TRUE;
@@ -1730,7 +1681,7 @@ t2fs_file t2fs_createDirectory (char * nome)
 	/*if(fileRecord != NULL)
 		return -1;*/
 
-	writeNewDirectoryRecord(recordBlock, fileRecord, nome);
+	writeNewDirectoryRecord(recordBlock, fileRecord, pathname);
 
 	//printRecordBlock(emptyRecordBlock);
 
@@ -1740,6 +1691,7 @@ t2fs_file t2fs_createDirectory (char * nome)
 
 }
 
+//void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome)
 void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome)
 {
 	t2fs_record* loadedBlock;
@@ -1772,6 +1724,7 @@ void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord,
 			
 }
 
+//t2fs_record * newDirectoryRecord(char * name, t2fs_record * newDirectoryRecord)
 t2fs_record * newDirectoryRecord(char * name, t2fs_record * newDirectoryRecord)
 {
 
@@ -1788,7 +1741,8 @@ t2fs_record * newDirectoryRecord(char * name, t2fs_record * newDirectoryRecord)
 
 }
 
-int t2fs_deleteDirectory (char *name)
+//int t2fs_deleteDirectory (char *name)
+int rmdir2 (char *pathname)
 {
 
 	t2fs_record * fileRecord;
@@ -1800,15 +1754,15 @@ int t2fs_deleteDirectory (char *name)
 	char * fileName;
 	char * address;
 
-	if(!strcmp(name, "/"))
+	if(!strcmp(pathname, "/"))
 		return -1;
 
 	// Arquivo não encontrado
-	if(getNameAddress(name, &fileName, &address) == -1)
+	if(getNameAddress(pathname, &fileName, &address) == -1)
 		return -1;
 
 	// Acha o arquivo
-	fileRecord = findRecord(name,TYPEVAL_DIRETORIO,&fileRecordBlock);
+	fileRecord = findRecord(pathname,TYPEVAL_DIRETORIO,&fileRecordBlock);
 
 	// Não encontrou o arquivo
 	if(fileRecord == NULL)
@@ -1859,5 +1813,23 @@ int t2fs_deleteDirectory (char *name)
 
 }
 
+DIR2 opendir2 (char *pathname){
+	DIR2 dir2;	
+	return dir2;
+}
 
+int readdir2 (DIR2 handle, DIRENT2 *dentry){
+	return 0;
+}
 
+int closedir2 (DIR2 handle){
+	return 0;
+}
+
+int chdir2 (char *pathname){
+	return 0;
+}
+
+int getcwd2 (char *pathname, int size){
+	return 0;
+}

@@ -35,33 +35,33 @@ int areThereFreeBlocks(unsigned int numberOfBlocks);
 void printBitmap();
 
 /** Funções de manipulação da TDAA **/
-t2fs_file insertFileTDAA(t2fs_record * fileRecord, DWORD fileBlock);
+FILE2 insertFileTDAA(t2fs_record * fileRecord, DWORD fileBlock);
 int canOpenMoreFiles();
 void printOpenedFiles();
 void printTAAP();
-t2fs_record * getTDAARecord(t2fs_file handle);
-DWORD getTDAABlock(t2fs_file handle);
-unsigned int * getTAAPcurrentPointer(t2fs_file handle);
-int removeFileTDAA(t2fs_file handle);
+t2fs_record * getTDAARecord(FILE2 handle);
+DWORD getTDAABlock(FILE2 handle);
+unsigned int * getTAAPcurrentPointer(FILE2 handle);
+int removeFileTDAA(FILE2 handle);
 
-t2fs_file isNewFile(t2fs_record* fileRecord);
+FILE2 isNewFile(t2fs_record* fileRecord);
 
-void insertNewFreeHandle(t2fs_file handle);
-int removeTAAPFile(t2fs_file handle);
-t2fs_file addProcessTAAP(t2fs_file TDAAEntry);
-int removeFileTAAP(t2fs_file handle);
-t2fs_file insertFileTAAP(t2fs_record * fileRecord, DWORD fileBlock);
+void insertNewFreeHandle(FILE2 handle);
+int removeTAAPFile(FILE2 handle);
+FILE2 addProcessTAAP(FILE2 TDAAEntry);
+int removeFileTAAP(FILE2 handle);
+FILE2 insertFileTAAP(t2fs_record * fileRecord, DWORD fileBlock);
 
 
 /** TDAA **/
 // Insere arquivo na lista de arquivos abertos
-t2fs_file insertFileTAAP(t2fs_record * fileRecord, DWORD fileBlock)
+FILE2 insertFileTAAP(t2fs_record * fileRecord, DWORD fileBlock)
 {
 
 	int i;
-	t2fs_file handle = -1;
-	t2fs_file freeEntry;
-	t2fs_file currentFreeHandle;
+	FILE2 handle = -1;
+	FILE2 freeEntry;
+	FILE2 currentFreeHandle;
 
 
 	freeEntry = isNewFile(fileRecord);
@@ -155,7 +155,7 @@ void  printBits(size_t const size, void const * const ptr){
 
 
 // Remove arquivo da TAAP
-int removeFileTAAP(t2fs_file handle)
+int removeFileTAAP(FILE2 handle)
 {
 	t2fs_taap * fileToBeClosed;
 
@@ -193,7 +193,7 @@ int removeFileTAAP(t2fs_file handle)
 }
 
 
-int removeFileTDAA(t2fs_file handle)
+int removeFileTDAA(FILE2 handle)
 {
 	// Verifica se pode remover
 	if(openedFilesInTDAA > 0  && tdaaFreeEntry[handle] == 1)
@@ -223,7 +223,7 @@ int removeFileTDAA(t2fs_file handle)
 }
 
 // Retorna record de um handle
-t2fs_record * getTDAARecord(t2fs_file handle)
+t2fs_record * getTDAARecord(FILE2 handle)
 {
 	t2fs_taap* lastFile;
 
@@ -238,7 +238,7 @@ t2fs_record * getTDAARecord(t2fs_file handle)
 		return  &(tdaa[lastFile->TDAAEntry].record);
 }
 // Retorna bloco de um handle
-DWORD getTDAABlock(t2fs_file handle)
+DWORD getTDAABlock(FILE2 handle)
 {
 
 	t2fs_taap* lastFile;
@@ -255,7 +255,7 @@ DWORD getTDAABlock(t2fs_file handle)
 }
 
 // Retorna record de um handle
-unsigned int * getTAAPcurrentPointer(t2fs_file handle)
+unsigned int * getTAAPcurrentPointer(FILE2 handle)
 {
 	t2fs_taap* lastFile;
 
@@ -504,7 +504,7 @@ int areThereFreeBlocks(unsigned int numberOfBlocks)
 
 }
 
-t2fs_file isNewFile(t2fs_record* fileRecord)
+FILE2 isNewFile(t2fs_record* fileRecord)
 {
 	int i;
 	
@@ -523,11 +523,11 @@ t2fs_file isNewFile(t2fs_record* fileRecord)
 	return -1;
 }
 
-t2fs_file addProcessTAAP(t2fs_file TDAAEntry)
+FILE2 addProcessTAAP(FILE2 TDAAEntry)
 {
 	t2fs_taap* lastFile;
 	t2fs_taap* newFile;
-	t2fs_file currentFreeHandle;
+	FILE2 currentFreeHandle;
 
 
 	lastFile = taap;
@@ -572,7 +572,7 @@ t2fs_file addProcessTAAP(t2fs_file TDAAEntry)
 }
 
 
-int removeTAAPFile(t2fs_file handle){
+int removeTAAPFile(FILE2 handle){
 	
 	t2fs_taap* fileToBeRemoved;
 	t2fs_taap* fileInTAAP;
@@ -620,7 +620,7 @@ int removeTAAPFile(t2fs_file handle){
 
 }
 
-void insertNewFreeHandle(t2fs_file handle)
+void insertNewFreeHandle(FILE2 handle)
 {
 	freeHandles* newHandle;
         freeHandles* nextHandle;

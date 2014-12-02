@@ -8,34 +8,37 @@ int main()
 {
 
     initSuperblock();
+	identify2("Lucas e Jonas", 13);
+	printf("%s", authors);
+
 	printSuperblock();
 	loadBitmap();
 	printBitmap();	
 	char str[30] = "Vamos Brasil! Rumo ao hexa!";
 	char str2[60];
-	t2fs_file handle;
-	t2fs_file dir;
+	FILE2 handle;
+	FILE2 dir;
 	
-	dir = t2fs_createDirectory("/casa");
-    dir = t2fs_createDirectory("/casa/casa2");
-	handle = t2fs_create("/casa/casa2/copa.txt");
+	dir = mkdir2("/casa");
+ 	dir = mkdir2("/casa/casa2");
+	handle = create2("/casa/casa2/copa.txt");
 
-	t2fs_write(handle, str, 27);
+	write2(handle, str, 27);
 
-	t2fs_close(handle);
+	close2(handle);
 
 
-	handle = t2fs_open("/copa.txt");
+	handle = open2("/copa.txt");
 
-	t2fs_seek(handle, -1);
+	seek2(handle, -1);
 
-	t2fs_write(handle, str, 27);
+	write2(handle, str, 27);
 
-	t2fs_seek(handle, 0);
+	seek2(handle, 0);
 
-	t2fs_read(handle, str2, 27*2);
+	read2(handle, str2, 27*2);
 
-	t2fs_close(handle);
+	close2(handle);
 
 
 	printf("%s", str2);
