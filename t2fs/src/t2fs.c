@@ -10,6 +10,11 @@
 /** Informa a identificação dos desenvolvedores do T2FS. */
 int identify2 (char *name, int size)
 {
+	int i;
+	for(i=0;i<size;i++) {
+		if(name[i] < 32 || name[i] > 122) return -1;
+	}	
+	printf("%s", authors); 
 	authors = malloc(size);
 	memcpy(authors, name, size);
 	return 0;
@@ -1814,7 +1819,7 @@ int rmdir2 (char *pathname)
 }
 
 DIR2 opendir2 (char *pathname){
-	DIR2 dir2;	
+	DIR2 dir2 = 0;
 	return dir2;
 }
 

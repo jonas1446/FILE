@@ -1,10 +1,6 @@
 #ifndef __LIBT2FS___
 #define __LIBT2FS___
 
-#define TYPEVAL_REGULAR     0x01
-#define TYPEVAL_DIRETORIO   0x02
-#define TYPEVAL_INVALIDO    0xFF
-
 typedef int FILE2;
 typedef int DIR2;
 typedef int BOOL;
