@@ -24,9 +24,8 @@ int identify2 (char *name, int size)
 FILE2 create2 (char *filename)
 {
 	// Entrada:
-	// Ex.: /dir1/arquivo
-	// Separa string, para pegar apenas o /dir (deixa o último de fora)
-
+	// Ex.: arquivo.txt
+	
 	t2fs_record * directoryRecord = NULL;
 	// Bloco onde existe entrada vazia
 	t2fs_record * fileRecord = NULL;
