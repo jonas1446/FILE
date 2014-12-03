@@ -51,7 +51,7 @@ t2fs_record * findRecord(char * name, BYTE TypeVal, unsigned int* recordBlock)
 
 	while( token != NULL)
 	{
-		DWORD dataPtr[2] = {record->dataPtr[0],record->dataPtr[1]};
+		DWORD dataPtr[4] = {record->dataPtr[0],record->dataPtr[1],record->dataPtr[2],record->dataPtr[3]};
 		DWORD singleIndPtr = record->singleIndPtr;
 		DWORD doubleIndPtr = record->doubleIndPtr;
 
@@ -70,23 +70,42 @@ t2fs_record * findRecord(char * name, BYTE TypeVal, unsigned int* recordBlock)
 			*recordBlock = dataPtr[1];
 
 			if (record == NULL)
-			{
-				if (singleIndPtr == -1)
+			{	
+				if (dataPtr[2] == -1)
 					return NULL;
-					
-				record = loadSingleIndPtr(singleIndPtr, type, token, recordBlock);
+
+				record = loadDataPtr(dataPtr[2], type, token);
+				*recordBlock = dataPtr[2];
+
 				if (record == NULL)
-				{
-					if (doubleIndPtr == -1)
+				{	
+					if (dataPtr[3] == -1)
 						return NULL;
-							
-					record = loadDoubleIndPtr(doubleIndPtr, type, token, recordBlock);
+
+					record = loadDataPtr(dataPtr[3], type, token);
+					*recordBlock = dataPtr[3];
 
 					if (record == NULL)
 					{
-						return NULL;
+						if (singleIndPtr == -1)
+							return NULL;
+				
+						record = loadSingleIndPtr(singleIndPtr, type, token, recordBlock);
+						if (record == NULL)
+						{
+							if (doubleIndPtr == -1)
+								return NULL;
+						
+							record = loadDoubleIndPtr(doubleIndPtr, type, token, recordBlock);
+
+							if (record == NULL)
+							{
+								return NULL;
+							}
+						}
 					}
 				}
+					
 			}
 		}
 		token = strtok(NULL,"/");
@@ -173,10 +192,7 @@ t2fs_record* loadDoubleIndPtr(unsigned int block, BYTE TypeVal, char* token, uns
 			i++;
 	}
 
-	return NULL;
- 
-
-	
+	return NULL;	
 }
 
 
@@ -268,48 +284,50 @@ void initSuperblock(void)
 	memcpy(&superblock->BitMapReg, buffer+128,64);
 	memcpy(&superblock->BitMapReg, buffer+128,64);
 	memcpy(&superblock->RootDirReg, buffer+192,64);
+
 	
 	free(buffer);
+
 }
 
 void printSuperblock()
 {
 
-	              printf("\n	CONFIG\n");
-				  printf("superblock->Id       			:\n",superblock->Id,superblock->Id);
-				  printf("superblock->Version       	:\n",superblock->Version,superblock->Version);
-				  printf("superblock->SuperBlockSize	:\n",superblock->SuperBlockSize,superblock->SuperBlockSize);
-				  printf("superblock->DiskSize      	:\n",superblock->DiskSize,superblock->DiskSize);
-				  printf("superblock->NofBlocks     	:\n",superblock->NofBlocks,superblock->NofBlocks);
-				  printf("superblock->BlockSize     	:\n",superblock->BlockSize,superblock->BlockSize);
-				  printf("superblock->Reserved	     	:\n",superblock->Reserved,superblock->Reserved);
-				  printf("\n\n");
+	printf("\n ************CONFIG****************\n");
+	printf("superblock->Version       ->HEX:%8x  DEC:%8d\n",superblock->Version,superblock->Version);
+	printf("superblock->SuperBlockSize->HEX:%8x  DEC:%8d\n",superblock->SuperBlockSize,superblock->SuperBlockSize);
+	printf("superblock->DiskSize      ->HEX:%8x  DEC:%8d\n",superblock->DiskSize,superblock->DiskSize);
+	printf("superblock->NofBlocks     ->HEX:%8x  DEC:%8d\n",superblock->NofBlocks,superblock->NofBlocks);
+	printf("superblock->BlockSize     ->HEX:%8x  DEC:%8d\n",superblock->BlockSize,superblock->BlockSize);
+	//printf("Setores por Bloco  ->HEX:xxx       DEC:%8d\n",nSetorBloco);
+	//printf("Setores  do disco  ->HEX:xxx       DEC:%8d\n",nSetor);
+	printf("\n ***********************************\n");
 
 
-                  printf("\n	BITMAP CONFIG\n");
-				  printf("superblock->BitMapReg.name: %s\n",superblock->BitMapReg.name);
-				  printf("superblock->BitMapReg.blocksFileSize 	:\n",superblock->BitMapReg.blocksFileSize,superblock->BitMapReg.blocksFileSize);
-				  printf("superblock->BitMapReg.bytesFileSize  	:\n",superblock->BitMapReg.bytesFileSize,superblock->BitMapReg.bytesFileSize);
-				  printf("superblock->BitMapReg.doubleIndPtr   	:\n",superblock->BitMapReg.doubleIndPtr,superblock->BitMapReg.doubleIndPtr);
-				  printf("superblock->BitMapReg.singleIndPtr   	:\n",superblock->BitMapReg.singleIndPtr,superblock->BitMapReg.singleIndPtr);
-				  printf("superblock->BitMapReg.dataPtr[0]     	:\n",superblock->BitMapReg.dataPtr[0],superblock->BitMapReg.dataPtr[0]);
-				  printf("superblock->BitMapReg.dataPtr[1]     	:\n",superblock->BitMapReg.dataPtr[1],superblock->BitMapReg.dataPtr[1]);
-				  printf("superblock->BitMapReg.dataPtr[2]     	:\n",superblock->BitMapReg.dataPtr[2],superblock->BitMapReg.dataPtr[2]);
-				  printf("superblock->BitMapReg.dataPtr[3]     	:\n",superblock->BitMapReg.dataPtr[3],superblock->BitMapReg.dataPtr[3]);
-				  printf("\n\n");
+	printf("\n *********BITMAP CONFIG*************\n");
+	printf("superblock->BitMapReg.name: %s\n",superblock->BitMapReg.name);
+	printf("superblock->BitMapReg.blocksFileSize ->HEX:%8x  DEC:%8d\n",superblock->BitMapReg.blocksFileSize,superblock->BitMapReg.blocksFileSize);
+	printf("superblock->BitMapReg.bytesFileSize  ->HEX:%8x  DEC:%8d\n",superblock->BitMapReg.bytesFileSize,superblock->BitMapReg.bytesFileSize);
+	printf("superblock->BitMapReg.doubleIndPtr   ->HEX:%8x  DEC:%8d\n",superblock->BitMapReg.doubleIndPtr,superblock->BitMapReg.doubleIndPtr);
+	printf("superblock->BitMapReg.singleIndPtr   ->HEX:%8x  DEC:%8d\n",superblock->BitMapReg.singleIndPtr,superblock->BitMapReg.singleIndPtr);
+	printf("superblock->BitMapReg.dataPtr[0]     ->HEX:%8x  DEC:%8d\n",superblock->BitMapReg.dataPtr[0],superblock->BitMapReg.dataPtr[0]);
+	printf("superblock->BitMapReg.dataPtr[1]     ->HEX:%8x  DEC:%8d\n",superblock->BitMapReg.dataPtr[1],superblock->BitMapReg.dataPtr[1]);
+	printf("superblock->BitMapReg.dataPtr[2]     ->HEX:%8x  DEC:%8d\n",superblock->BitMapReg.dataPtr[2],superblock->BitMapReg.dataPtr[2]);
+	printf("superblock->BitMapReg.dataPtr[3]     ->HEX:%8x  DEC:%8d\n",superblock->BitMapReg.dataPtr[3],superblock->BitMapReg.dataPtr[3]);
+	printf("\n ***********************************\n");
 
 
-                  printf("\n	ROOT CONFIG\n");
-				  printf("superblock->RootDirReg.name: %s\n",superblock->RootDirReg.name);
-				  printf("superblock->RootDirReg.blocksFileSize 	:\n",superblock->RootDirReg.blocksFileSize,superblock->RootDirReg.blocksFileSize);
-				  printf("superblock->RootDirReg.bytesFileSize  	:\n",superblock->RootDirReg.bytesFileSize,superblock->RootDirReg.bytesFileSize);
-				  printf("superblock->RootDirReg.doubleIndPtr   	:\n",superblock->RootDirReg.doubleIndPtr,superblock->RootDirReg.doubleIndPtr);
-				  printf("superblock->RootDirReg.singleIndPtr   	:\n",superblock->RootDirReg.singleIndPtr,superblock->RootDirReg.singleIndPtr);
-				  printf("superblock->RootDirReg.dataPtr[0]     	:\n",superblock->RootDirReg.dataPtr[0],superblock->RootDirReg.dataPtr[0]);
-				  printf("superblock->RootDirReg.dataPtr[1]     	:\n",superblock->RootDirReg.dataPtr[1],superblock->RootDirReg.dataPtr[1]);
-				  printf("superblock->RootDirReg.dataPtr[2]     	:\n",superblock->RootDirReg.dataPtr[2],superblock->RootDirReg.dataPtr[2]);
-				  printf("superblock->RootDirReg.dataPtr[3]     	:\n",superblock->RootDirReg.dataPtr[3],superblock->RootDirReg.dataPtr[3]);
-				  printf("\n\n");
+	printf("\n ********* ROOT CONFIG *************\n");
+	printf("superblock->RootDirReg.name: %s\n",superblock->RootDirReg.name);
+	printf("superblock->RootDirReg.blocksFileSize ->HEX:%8x  DEC:%8d\n",superblock->RootDirReg.blocksFileSize,superblock->RootDirReg.blocksFileSize);
+	printf("superblock->RootDirReg.bytesFileSize  ->HEX:%8x  DEC:%8d\n",superblock->RootDirReg.bytesFileSize,superblock->RootDirReg.bytesFileSize);
+	printf("superblock->RootDirReg.doubleIndPtr   ->HEX:%8x  DEC:%8d\n",superblock->RootDirReg.doubleIndPtr,superblock->RootDirReg.doubleIndPtr);
+	printf("superblock->RootDirReg.singleIndPtr   ->HEX:%8x  DEC:%8d\n",superblock->RootDirReg.singleIndPtr,superblock->RootDirReg.singleIndPtr);
+	printf("superblock->RootDirReg.dataPtr[0]     ->HEX:%8x  DEC:%8d\n",superblock->RootDirReg.dataPtr[0],superblock->RootDirReg.dataPtr[0]);
+	printf("superblock->RootDirReg.dataPtr[1]     ->HEX:%8x  DEC:%8d\n",superblock->RootDirReg.dataPtr[1],superblock->RootDirReg.dataPtr[1]);
+	printf("superblock->RootDirReg.dataPtr[2]     ->HEX:%8x  DEC:%8d\n",superblock->RootDirReg.dataPtr[2],superblock->RootDirReg.dataPtr[2]);
+	printf("superblock->RootDirReg.dataPtr[3]     ->HEX:%8x  DEC:%8d\n",superblock->RootDirReg.dataPtr[3],superblock->RootDirReg.dataPtr[3]);
+	printf("\n ***********************************\n");
 
 }
 
@@ -615,6 +633,28 @@ void setSuperblockDataPtr1(DWORD block)
 		initSuperblock();
 
 	superblock->RootDirReg.dataPtr[1] = block;
+
+	writeSuperblock();
+
+}
+
+void setSuperblockDataPtr2(DWORD block)
+{
+	if(superblock == NULL)
+		initSuperblock();
+
+	superblock->RootDirReg.dataPtr[2] = block;
+
+	writeSuperblock();
+
+}
+
+void setSuperblockDataPtr3(DWORD block)
+{
+	if(superblock == NULL)
+		initSuperblock();
+
+	superblock->RootDirReg.dataPtr[3] = block;
 
 	writeSuperblock();
 

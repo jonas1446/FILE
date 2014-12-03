@@ -23,36 +23,6 @@ freeHandles * freeTAAPHandles = NULL;
 // Indice de entradas livres da tdaa
 unsigned int tdaaFreeEntry[MAX_OPEN_FILES] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-
-/* BITMAP */
-void loadBitmap(void);
-int writeBitmap(void);
-void setBitOn(unsigned int block);
-void setBitOff(unsigned int block);
-int bitStatus(unsigned int block);
-unsigned int findFreeBlock();
-int areThereFreeBlocks(unsigned int numberOfBlocks);
-void printBitmap();
-
-/** Funções de manipulação da TDAA **/
-FILE2 insertFileTDAA(t2fs_record * fileRecord, DWORD fileBlock);
-int canOpenMoreFiles();
-void printOpenedFiles();
-void printTAAP();
-t2fs_record * getTDAARecord(FILE2 handle);
-DWORD getTDAABlock(FILE2 handle);
-unsigned int * getTAAPcurrentPointer(FILE2 handle);
-int removeFileTDAA(FILE2 handle);
-
-FILE2 isNewFile(t2fs_record* fileRecord);
-
-void insertNewFreeHandle(FILE2 handle);
-int removeTAAPFile(FILE2 handle);
-FILE2 addProcessTAAP(FILE2 TDAAEntry);
-int removeFileTAAP(FILE2 handle);
-FILE2 insertFileTAAP(t2fs_record * fileRecord, DWORD fileBlock);
-
-
 /** TDAA **/
 // Insere arquivo na lista de arquivos abertos
 FILE2 insertFileTAAP(t2fs_record * fileRecord, DWORD fileBlock)
@@ -233,7 +203,7 @@ t2fs_record * getTDAARecord(FILE2 handle)
 		lastFile = (t2fs_taap*) lastFile->nextFile;
 
 	if (lastFile->handle != handle)
-		return -1;
+		return NULL;
 	else
 		return  &(tdaa[lastFile->TDAAEntry].record);
 }
@@ -265,7 +235,8 @@ unsigned int * getTAAPcurrentPointer(FILE2 handle)
 		lastFile = lastFile->nextFile;
 
 	if (lastFile->handle != handle)
-		return -1;
+		printf("%s", "filecontrol.c - getTAAPcurrentPointer() ERROR");		
+		return 0; // ERROR
 	else
 		return &lastFile->currentPointer;
 }
@@ -361,34 +332,27 @@ void printBitmap()
 
 	if(bitmap == NULL)
 		loadBitmap();
-
-	
-	
 		
-		          printf("\n ********** BITMAP MAP  ************\n");
-                  printf("\n ****[0] -> b7 b6 b5 b4 b3 b2 b1****\n");
-                  printf("\n ****[1] -> .............. b9 b8****\n");
-                  printf("\n ***********************************\n");
+	printf("\n ********** BITMAP MAP  ************\n");
+	printf("\n ****[0] -> b7 b6 b5 b4 b3 b2 b1****\n");
+	printf("\n ****[1] -> .............. b9 b8****\n");
+	printf("\n ***********************************\n");
 
-                  for(j=0;j<128;j++)
-                  {
+	for(j=0;j<128;j++)
+	{
 
-                    printf( "[%3d] -> ", j);
+		printf( "[%3d] -> ", j);
 
-                    printBits(sizeof(bitmap[j]),&bitmap[j]);
+		printBits(sizeof(bitmap[j]),&bitmap[j]);
 
-                    printf( "| ");
+		printf( "| ");
 
-                    if(j%4==3 && j != 0)
-                     printf( "\n");
+		if(j%4==3 && j != 0)
+			printf( "\n");
 
-                  }
+		}
 
-                  printf("\n ***********************************\n");
-		
-		
-
-
+	printf("\n ***********************************\n");
 }
 
 // Escreve bitmap no disco

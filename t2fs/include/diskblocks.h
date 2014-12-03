@@ -14,7 +14,7 @@
 #define MAX_SIZE_NAME 31
 #define NOT_ERROR 0
 
-/** Carrega o superbloco **/
+/** Carrega o superbloco em memória */
 void initSuperblock(void);
 char * getSuperblock_id();
 WORD getSuperblockVersion();
@@ -27,7 +27,10 @@ t2fs_record * getBitmapreg();
 t2fs_record * getRootdirreg();
 void printSuperblock();
 
+// Carrega um bloco e retorna o seu conteudo como um vetor de char
 char * loadBlock(unsigned int block);
+
+// Carrega um bloco e salva no formato de estruturas t2fs_record (possui 16 estruturas de record)
 t2fs_record * loadRecordsBlock(unsigned int block);
 
 /// Procura por record
@@ -44,7 +47,7 @@ int deallocateDataBlock(unsigned int block);
 int deallocateRecordBlock(unsigned int block);
 int writeIndexBlock(unsigned int block, DWORD * indexBlock);
 int writeRecordsBlock(unsigned int block, t2fs_record * record);
-int writeBlock(DWORD block, char * buffer);
+int writeBlock(unsigned int block, char * buffer);
 
 void error_read(unsigned int sector);
 void error_write(unsigned int sector);
@@ -55,6 +58,5 @@ void setSuperblockSingleIndPtr(DWORD block);
 void setSuperblockDataPtr0(DWORD block);
 void setSuperblockDataPtr1(DWORD block);
 void setSuperblockFileSize(DWORD bytes, DWORD blocks);
-
 
 #endif

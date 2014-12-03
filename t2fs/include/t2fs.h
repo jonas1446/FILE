@@ -39,7 +39,7 @@ struct t2fs_record {
     Assim, a detecção do término do arquivo dependerá da observação desse campo do registro. */
     DWORD   bytesFileSize;  //  36:  4 bytes
 
-    /* Dois ponteiros diretos, para blocos de dados do arquivo */
+    /* Quatro ponteiros diretos, para blocos de dados do arquivo */
     DWORD   dataPtr[4];     //  40:  16 bytes
 
     /* Ponteiro de indireção simples,
@@ -61,7 +61,7 @@ struct t2fs_superbloco {
     /* Versão atual desse sistema de arquivos: (valor fixo 7DE=2014; 1=1 semestre). */
     WORD    Version;        // :   2 bytes
 
-    /* Quantidade de setores  que formam o superbloco. (fixo em 1 setor) */
+    /* Quantidade de setores  que formam o superbloco. */
     WORD    SuperBlockSize; // :   2 bytes
 
     /* Tamanho total da partição T2FS, incluindo o tamanho do superblock. (1.048.832 bytes) */

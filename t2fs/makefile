@@ -15,10 +15,4 @@ bin/filecontrol.o: src/filecontrol.c
 
 clean:
 	rm lib/libt2fs.a bin/*.o
-	rm bin/mkdirt2
-	rm bin/cpy2t2
-	rm bin/dirt2
-	rm bin/rmdirt2
 	rm bin/teste1
-	rm bin/teste2
-	rm bin/teste3
