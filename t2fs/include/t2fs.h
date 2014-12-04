@@ -3,6 +3,10 @@
 #ifndef __LIBT2FS___
 #define __LIBT2FS___
 
+#define TYPEVAL_REGULAR     0x01
+#define TYPEVAL_DIRETORIO   0x02
+#define TYPEVAL_INVALIDO    0xFF
+
 typedef int FILE2;
 typedef int DIR2;
 typedef int BOOL;
@@ -17,6 +21,9 @@ typedef unsigned int DWORD;
 #define TYPEVAL_REGULAR     0x01
 #define TYPEVAL_DIRETORIO   0x02
 #define TYPEVAL_INVALIDO    0xFF    // qualquer outro valor também é invalido
+
+/** Guarda o nome dos autores, quando "setada" */
+char *authors;
 
 /** Registro de diretório (entrada de diretório) */
 struct t2fs_record {
@@ -185,8 +192,5 @@ void dirt2DoubleIndPtr(unsigned int block);
 t2fs_record * newDirectoryRecord(char * name, t2fs_record * newDirectoryRecord);
 void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome);
 int getNameAddress(char * nome, char ** fileName, char ** address);
-
-/** Guarda o nome dos autores, quando "setada" */
-char *authors;
 
 #endif

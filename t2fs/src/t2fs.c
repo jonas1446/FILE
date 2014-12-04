@@ -344,6 +344,7 @@ void writeNewFileRecord (unsigned int recordBlock, t2fs_record* fileRecord, char
 			
 }
 
+//void writeRecord (unsigned int recordBlock, t2fs_record* fileRecord)
 void writeRecord (unsigned int recordBlock, t2fs_record* fileRecord)
 {
 	t2fs_record* loadedBlock;
@@ -374,6 +375,7 @@ void writeRecord (unsigned int recordBlock, t2fs_record* fileRecord)
 
 // Remove record de um bloco de records
 // Retorna -1 se o record é o último do bloco
+//int removeRecord(unsigned int recordBlock, t2fs_record * fileRecord)
 int removeRecord(unsigned int recordBlock, t2fs_record * fileRecord)
 {
 	t2fs_record* loadedBlock;
@@ -407,6 +409,7 @@ int removeRecord(unsigned int recordBlock, t2fs_record * fileRecord)
 
 
 // Aloca área do disco para dados e cria record para arquivo
+//t2fs_record * newFileRecord(char * name, t2fs_record * newFileRecord)
 t2fs_record * newFileRecord(char * name, t2fs_record * newFileRecord)
 {
 	unsigned int freeBlockNumber;
@@ -645,7 +648,6 @@ void removeRecordBlockFromDirectory(DWORD recordBlock, t2fs_record * directoryRe
 
 }
 
-
 t2fs_record* EmptyRecordSingleIndPtr(unsigned int block, unsigned int* recordBlock, char * fileName, BOOL* isTheSameFile){
 
 	DWORD * loadedBlock;
@@ -796,7 +798,6 @@ void printRecordBlock(unsigned int block)
 
 }
 
-
 void printDataBlock(unsigned int block)
 {
 	int i;
@@ -850,7 +851,6 @@ FILE2 open2(char *filename)
 
 
 /****** T2FS_CLOSE ******/
-//int t2fs_close(t2fs_file handle)
 int close2 (FILE2 handle)
 {
 	if(handle == -1) return -1;	
@@ -859,7 +859,6 @@ int close2 (FILE2 handle)
 
 
 /**** T2FS READ ****/
-//int t2fs_read(t2fs_file handle, char * buffer, int size)
 int read2 (FILE2 handle, char *buffer, int size)
 {
 	if(handle == -1) return -1;
@@ -967,21 +966,25 @@ int calcFistBlock(unsigned int begin)
 	return begin/BLOCK_SIZE;
 }
 
+//int calcFirstBlockOffset(unsigned int begin)
 int calcFirstBlockOffset(unsigned int begin)
 {
 	return begin%BLOCK_SIZE;
 }
 
+//int calcLastBlock(unsigned int end)
 int calcLastBlock(unsigned int end)
 {
 	return end/BLOCK_SIZE;
 }
 
+//int calcLastBlockOffset(unsigned int end)
 int calcLastBlockOffset(unsigned int end)
 {
 	return end%BLOCK_SIZE;
 }
 
+//DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 {
 
@@ -1525,7 +1528,6 @@ void dirt2SingleIndPtr(unsigned int block){
 	}
 }
 
-
 void dirt2DoubleIndPtr(unsigned int block){
 
 	DWORD * loadedBlock;
@@ -1875,6 +1877,7 @@ int mkdir2 (char *pathname)
 	return 0;
 
 }
+
 
 void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome)
 {

@@ -12,7 +12,12 @@ int main()
 	printSuperblock();
 	loadBitmap();
 
+	printRecordBlock(1);
 
+//	printf("1c-%d\n", create2("/sisop.txt"));
+//	printf("1d-%d\n", delete2("/sisop.txt"));
+
+/**
 	int identify;
 	char str1[30] = "Random Text";
 	char str2[60] = "Not so random Text";
@@ -25,12 +30,6 @@ int main()
 	int seek;
 	int read;
 
-	printRecordBlock(1);
-
-//	printf("1c-%d\n", create2("/sisop.txt"));
-//	printf("1d-%d\n", delete2("/sisop.txt"));
-
-/**
 	printRecordBlock(2);
 
 	printf("1c-%d\n", create2("/sisop.txt"));
