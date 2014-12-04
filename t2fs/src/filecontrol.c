@@ -234,11 +234,13 @@ unsigned int * getTAAPcurrentPointer(FILE2 handle)
 	while(lastFile->nextFile != NULL && lastFile->handle != handle)
 		lastFile = lastFile->nextFile;
 
-	if (lastFile->handle != handle)
+	if (lastFile->handle != handle) {
 		printf("%s", "filecontrol.c - getTAAPcurrentPointer() ERROR");		
 		return 0; // ERROR
-	else
+	}	
+	else {
 		return &lastFile->currentPointer;
+	}
 }
 
 

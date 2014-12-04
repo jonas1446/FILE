@@ -11,7 +11,7 @@ int main()
 	
 	printSuperblock();
 	loadBitmap();
-	//printBitmap();		
+
 
 	int identify;
 	char str1[30] = "Random Text";
@@ -25,6 +25,55 @@ int main()
 	int seek;
 	int read;
 
+	printRecordBlock(1);
+
+//	printf("1c-%d\n", create2("/sisop.txt"));
+//	printf("1d-%d\n", delete2("/sisop.txt"));
+
+/**
+	printRecordBlock(2);
+
+	printf("1c-%d\n", create2("/sisop.txt"));
+	printf("2c-%d\n", create2("/sisop2.txt"));
+	printf("3c-%d\n", create2("/sisop2sisop2.txt"));
+	printf("4c-%d\n", create2("/sisop2sisop5.txt"));
+	printf("5c-%d\n", create2("/1sisoppsisop5.txt"));
+	printf("6c-%d\n", create2("/3sisoppsisop5.txt"));
+	printf("7c-%d\n", create2("/111.txt"));
+	printf("8c-%d\n", create2("/copa.txt"));
+	printf("9c-%d\n", create2("/copa2.txt"));
+	printf("10c-%d\n", create2("/createsimple.txt"));
+	printf("11c-%d\n", create2("/normalfile.txt"));
+	printf("12c-%d\n", create2("/normalfileRelative.txt"));
+	printf("13c-%d\n", create2("/extra1.txt"));
+	printf("14c-%d\n", create2("/extra2.txt"));
+	printf("15c-%d\n", create2("/extra3.txt"));
+	printf("16c-%d\n", create2("/extra4.txt"));
+
+	printf("1d-%d\n", delete2("/sisop.txt"));
+	printf("2d-%d\n", delete2("/sisop2.txt"));
+	printf("3d-%d\n", delete2("/sisop2sisop2.txt"));
+	printf("4d-%d\n", delete2("/sisop2sisop5.txt"));
+	printf("5d-%d\n", delete2("/1sisoppsisop5.txt"));
+	printf("6d-%d\n", delete2("/3sisoppsisop5.txt"));
+	printf("7d-%d\n", delete2("/111.txt"));
+	printf("8d-%d\n", delete2("/copa.txt"));
+	printf("9d-%d\n", delete2("/copa2.txt"));
+	printf("10d-%d\n", delete2("/createsimple.txt"));
+	printf("11d-%d\n", delete2("/normalfile.txt"));
+	printf("12d-%d\n", delete2("/normalfileRelative.txt"));
+	printf("13d-%d\n", delete2("/extra1.txt"));
+	printf("14d-%d\n", delete2("/extra2.txt"));
+	printf("15d-%d\n", delete2("/extra3.txt"));
+	printf("16d-%d\n", delete2("/extra4.txt"));
+
+	//printf("13-%d\n", rmdir2("/casa"));
+	//printf("14-%d\n", rmdir2("/folder"));
+
+	printRecordBlock(2);
+*/
+
+/**
 	identify = identify2("Lucas e Jonas\0", 14);
 	if(identify == 0) printf("108 identify2 - Setando o identify2 com racacter inválido, but no error found. It return: %d\n", identify);
 
@@ -56,6 +105,7 @@ int main()
 
 	dir = mkdir2("/casa");
 	if(dir < 0) printf("105 create2 - trying to create directory return an error. It return: %d\n", dir);
+
  	dir = mkdir2("/casa/casa2");
 	if(dir < 0) printf("106 create2 - trying to create directory inside a directory return an error. It return: %d\n", dir);
 	handle = create2("/casa/casa2/copa.txt");
@@ -84,9 +134,9 @@ int main()
 	if(handle == 0) printf("120 create2 - trying to create file that already exists did not return an error. It return: %d\n", handle);
 
 	dir = mkdir2("/folder");
-	if(handle == 1) printf("103 create2 - trying to create normal directory that return an error, when it shouldn't. It return: %d\n", handle);
+	if(handle < 1) printf("103 create2 - trying to create normal directory that return an error, when it shouldn't. It return: %d\n", handle);
 	dir = mkdir2("/folder");
-	if(handle != -1) printf("104 create2 - trying to create directory that already exists did not return an error. It return: %d\n", handle);
+	if(handle == 0) printf("104 create2 - trying to create directory that already exists did not return an error. It return: %d\n", handle);
 
 	handle = create2("/copa.txt");
 	handle = open2("/copa.txt");
@@ -95,6 +145,6 @@ int main()
 	seek2(handle, 0);
 	read2(handle, str2, 27*2);
 	close2(handle);
-
+*/
 	return 0;
 }

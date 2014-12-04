@@ -6,7 +6,7 @@
 #include <t2fs.h>
 
 #define SECTOR_SIZE 256
-#define SUPERBLOCK 1024
+#define SUPERBLOCK 256
 #define BLOCK_SIZE getBlocksize()
 #define NOF_BLOCKS getNofblocks()
 #define RECORD_SIZE 64
