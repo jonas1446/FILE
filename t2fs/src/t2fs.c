@@ -1940,11 +1940,11 @@ int chdir2 (char *pathname){
 
 int getcwd2 (char *pathname, int size){
 
-	printf("curaddr %s\n", curaddr);
-	printf("sizeof(curaddr) %d\n", sizeof(curaddr));
-	if(size < sizeof(curaddr))
-	pathname = strdup(curaddr);
-	printf("pathname %s\n", pathname);
+	/*printf("curaddr %s\n", getCurDir());
+	printf("sizeof(curaddr) %d\n", sizeof(getCurDir()));
+	if(size < sizeof(getCurDir()))
+	pathname = strdup(getCurDir());
+	printf("pathname %s\n", pathname);*/
 	return 0;
 }
 
