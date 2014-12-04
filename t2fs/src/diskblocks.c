@@ -10,52 +10,6 @@
 /** superbloco global **/
 t2fs_superblock * superblock = NULL;
 
-/** Carrega o superbloco em memória */
-void initSuperblock(void);
-char * getSuperblock_id();
-WORD getSuperblockVersion();
-WORD getSuperblocksize();
-DWORD getDisksize();
-DWORD getNofblocks();
-DWORD getBlocksize();
-char * getReserved();
-t2fs_record * getBitmapreg();
-t2fs_record * getRootdirreg();
-void printSuperblock();
-
-// Carrega um bloco e retorna o seu conteudo como um vetor de char
-char * loadBlock(unsigned int block);
-
-// Carrega um bloco e salva no formato de estruturas t2fs_record (possui 16 estruturas de record)
-t2fs_record * loadRecordsBlock(unsigned int block);
-
-/// Procura por record
-t2fs_record * findRecord(char * name, BYTE TypeVal, unsigned int* recordBlock);
-t2fs_record* loadDataPtr(unsigned int block, BYTE TypeVal, char* token);
-t2fs_record* loadSingleIndPtr(unsigned int block, BYTE TypeVal, char* token, unsigned int* recordBlock);
-t2fs_record* loadDoubleIndPtr(unsigned int block, BYTE TypeVal, char* token, unsigned int* recordBlock);
-DWORD* loadIndexBlock(unsigned int block);
-
-int allocateDataBlock(unsigned int block);
-int allocateIndexBlock(unsigned int block);
-int allocateRecordsBlock(unsigned int block);
-int deallocateDataBlock(unsigned int block);
-// Desaloca bloco de records
-int deallocateRecordBlock(unsigned int block);
-int writeIndexBlock(unsigned int block, DWORD * indexBlock);
-int writeRecordsBlock(unsigned int block, t2fs_record * record);
-int writeBlock(unsigned int block, char * buffer);
-
-void error_read(unsigned int sector);
-void error_write(unsigned int sector);
-
-void writeSuperblock(void);
-void setSuperblockDoubleIndPtr(DWORD block);
-void setSuperblockSingleIndPtr(DWORD block);
-void setSuperblockDataPtr0(DWORD block);
-void setSuperblockDataPtr1(DWORD block);
-void setSuperblockFileSize(DWORD bytes, DWORD blocks);
-
 // Procura pela entrada de diretório do arquivo com o nome informado
 t2fs_record * findRecord(char * name, BYTE TypeVal, unsigned int* recordBlock)
 {
@@ -116,23 +70,42 @@ t2fs_record * findRecord(char * name, BYTE TypeVal, unsigned int* recordBlock)
 			*recordBlock = dataPtr[1];
 
 			if (record == NULL)
-			{
-				if (singleIndPtr == -1)
+			{	
+				if (dataPtr[2] == -1)
 					return NULL;
-					
-				record = loadSingleIndPtr(singleIndPtr, type, token, recordBlock);
+
+				record = loadDataPtr(dataPtr[2], type, token);
+				*recordBlock = dataPtr[2];
+
 				if (record == NULL)
-				{
-					if (doubleIndPtr == -1)
+				{	
+					if (dataPtr[3] == -1)
 						return NULL;
-							
-					record = loadDoubleIndPtr(doubleIndPtr, type, token, recordBlock);
+
+					record = loadDataPtr(dataPtr[3], type, token);
+					*recordBlock = dataPtr[3];
 
 					if (record == NULL)
 					{
-						return NULL;
+						if (singleIndPtr == -1)
+							return NULL;
+				
+						record = loadSingleIndPtr(singleIndPtr, type, token, recordBlock);
+						if (record == NULL)
+						{
+							if (doubleIndPtr == -1)
+								return NULL;
+						
+							record = loadDoubleIndPtr(doubleIndPtr, type, token, recordBlock);
+
+							if (record == NULL)
+							{
+								return NULL;
+							}
+						}
 					}
 				}
+					
 			}
 		}
 		token = strtok(NULL,"/");
@@ -219,10 +192,7 @@ t2fs_record* loadDoubleIndPtr(unsigned int block, BYTE TypeVal, char* token, uns
 			i++;
 	}
 
-	return NULL;
- 
-
-	
+	return NULL;	
 }
 
 
@@ -271,7 +241,7 @@ t2fs_record * loadRecordsBlock(unsigned int block)
 	for(i=0; i < BLOCK_SIZE / RECORD_SIZE ; i++)
 	{
 		memcpy(&loadedBlock[i].TypeVal, buffer+RECORD_SIZE*i, 1);
-		memcpy(&loadedBlock[i].name, buffer+1+RECORD_SIZE*i, 39); // Colocar \0 ??? testar
+		memcpy(&loadedBlock[i].name, buffer+1+RECORD_SIZE*i, 31); // Colocar \0 ??? testar
 		memcpy(&loadedBlock[i].blocksFileSize, buffer+32+RECORD_SIZE*i,4);
 		memcpy(&loadedBlock[i].bytesFileSize, buffer+36+RECORD_SIZE*i,4);
 		memcpy(&loadedBlock[i].dataPtr, buffer+40+RECORD_SIZE*i,16);
@@ -663,6 +633,28 @@ void setSuperblockDataPtr1(DWORD block)
 		initSuperblock();
 
 	superblock->RootDirReg.dataPtr[1] = block;
+
+	writeSuperblock();
+
+}
+
+void setSuperblockDataPtr2(DWORD block)
+{
+	if(superblock == NULL)
+		initSuperblock();
+
+	superblock->RootDirReg.dataPtr[2] = block;
+
+	writeSuperblock();
+
+}
+
+void setSuperblockDataPtr3(DWORD block)
+{
+	if(superblock == NULL)
+		initSuperblock();
+
+	superblock->RootDirReg.dataPtr[3] = block;
 
 	writeSuperblock();
 

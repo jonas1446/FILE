@@ -8,7 +8,7 @@ typedef int BOOL;
 #define FALSE 0
 #define TRUE 1
 
-typedef int t2fs_file;
+typedef int FILE2;
 
 #define TYPEVAL_REGULAR     0x01
 #define TYPEVAL_DIRETORIO   0x02
@@ -91,25 +91,25 @@ typedef struct t2fs_record t2fs_record;
 char *t2fs_identify (void);
 
 /** Função usada para criar um novo arquivo no disco. */
-t2fs_file t2fs_create (char *nome);
+FILE2 t2fs_create (char *nome);
 
 /** Função usada para remover (apagar) um arquivo do disco. */
 int t2fs_delete (char *nome);
 
 /** Função que abre um arquivo existente no disco. */
-t2fs_file t2fs_open (char *nome);
+FILE2 t2fs_open (char *nome);
 
 /** Função usada para fechar um arquivo. */
-int t2fs_close (t2fs_file handle);
+int t2fs_close (FILE2 handle);
 
 /** Função usada para realizar a leitura em um arquivo. */
-int t2fs_read (t2fs_file handle, char *buffer, int size);
+int t2fs_read (FILE2 handle, char *buffer, int size);
 
 /** Função usada para realizar a escrita em um arquivo. */
-int t2fs_write (t2fs_file handle, char *buffer, int size);
+int t2fs_write (FILE2 handle, char *buffer, int size);
 
 /** Altera o contador de posição (current pointer) do arquivo. */
-int t2fs_seek (t2fs_file handle, unsigned int offset);
+int t2fs_seek (FILE2 handle, unsigned int offset);
 
 int getNameAddress(char * nome, char ** fileName, char ** address);
 
@@ -144,7 +144,7 @@ void dirt2DoubleIndPtr(unsigned int block);
 
 t2fs_record * newDirectoryRecord(char * name, t2fs_record * newDirectoryRecord);
 void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome);
-t2fs_file t2fs_createDirectory (char * nome);
+FILE2 t2fs_createDirectory (char * nome);
 int t2fs_deleteDirectory (char *name);
 
 

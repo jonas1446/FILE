@@ -13,7 +13,7 @@ typedef struct TDAA {
 }t2fs_tdaa;
 
 typedef struct TAAP {
-	t2fs_file handle;
+	FILE2 handle;
 	unsigned int TDAAEntry;
 	unsigned int currentPointer; // posição corrente do ponteiro de acesso
 	struct t2fs_taap * nextFile;
@@ -21,19 +21,15 @@ typedef struct TAAP {
 
 
 typedef struct freeHandles {
-	t2fs_file handle;
+	FILE2 handle;
 	struct freeHandles* next;
 	struct freeHandles* previous;
 }freeHandles;
-
-
 
 void setCurDir(char* addr);
 char* getCurDir(void);
 void setCurUpDir(char* addr);
 char* getCurUpDir(void);
-
-
 
 /* BITMAP */
 void loadBitmap(void);
@@ -46,22 +42,22 @@ int areThereFreeBlocks(unsigned int numberOfBlocks);
 void printBitmap();
 
 /** Funções de manipulação da TDAA **/
-t2fs_file insertFileTDAA(t2fs_record * fileRecord, DWORD fileBlock);
+FILE2 insertFileTDAA(t2fs_record * fileRecord, DWORD fileBlock);
 int canOpenMoreFiles();
 void printOpenedFiles();
 void printTAAP();
-t2fs_record * getTDAARecord(t2fs_file handle);
-DWORD getTDAABlock(t2fs_file handle);
-unsigned int * getTAAPcurrentPointer(t2fs_file handle);
-int removeFileTDAA(t2fs_file handle);
+t2fs_record * getTDAARecord(FILE2 handle);
+DWORD getTDAABlock(FILE2 handle);
+unsigned int * getTAAPcurrentPointer(FILE2 handle);
+int removeFileTDAA(FILE2 handle);
 
-t2fs_file isNewFile(t2fs_record* fileRecord);
+FILE2 isNewFile(t2fs_record* fileRecord);
 
-void insertNewFreeHandle(t2fs_file handle);
-int removeTAAPFile(t2fs_file handle);
-t2fs_file addProcessTAAP(t2fs_file TDAAEntry);
-int removeFileTAAP(t2fs_file handle);
-t2fs_file insertFileTAAP(t2fs_record * fileRecord, DWORD fileBlock);
+void insertNewFreeHandle(FILE2 handle);
+int removeTAAPFile(FILE2 handle);
+FILE2 addProcessTAAP(FILE2 TDAAEntry);
+int removeFileTAAP(FILE2 handle);
+FILE2 insertFileTAAP(t2fs_record * fileRecord, DWORD fileBlock);
 
 
 

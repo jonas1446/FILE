@@ -14,8 +14,8 @@ int main()
 	//printBitmap();	
 	char str[30] = "Vamos Brasil! Rumo ao tetra!";
 	char str2[60];
-	t2fs_file handle;
-	t2fs_file dir;
+	FILE2 handle;
+	FILE2 dir;
 	
 	dir = t2fs_createDirectory("/casa10/");
     dir = t2fs_createDirectory("/casa10/casa2/");
