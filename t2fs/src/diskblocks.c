@@ -13,7 +13,7 @@ t2fs_superblock * superblock = NULL;
 // Procura pela entrada de diretório do arquivo com o nome informado
 t2fs_record * findRecord(char * name, BYTE TypeVal, unsigned int* recordBlock)
 {
-	char address[MAX_SIZE_NAME];
+	char address[MAX_FILE_NAME_SIZE];
 	int i, TypeValFlag = 0;
 	BYTE type;
 
@@ -51,7 +51,7 @@ t2fs_record * findRecord(char * name, BYTE TypeVal, unsigned int* recordBlock)
 
 	while( token != NULL)
 	{
-		DWORD dataPtr[2] = {record->dataPtr[0],record->dataPtr[1]};
+		DWORD dataPtr[4] = {record->dataPtr[0],record->dataPtr[1],record->dataPtr[2],record->dataPtr[3]};
 		DWORD singleIndPtr = record->singleIndPtr;
 		DWORD doubleIndPtr = record->doubleIndPtr;
 

@@ -6,12 +6,12 @@
 #include <t2fs.h>
 
 #define SECTOR_SIZE 256
-#define SUPERBLOCK 1024
+#define SUPERBLOCK 256
 #define BLOCK_SIZE getBlocksize()
 #define NOF_BLOCKS getNofblocks()
 #define RECORD_SIZE 64
 #define BITS_PER_WORD 8
-#define MAX_SIZE_NAME 31
+#define MAX_FILE_NAME_SIZE 31
 #define NOT_ERROR 0
 
 /** Carrega o superbloco **/

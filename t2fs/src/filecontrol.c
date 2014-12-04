@@ -673,4 +673,22 @@ void insertNewFreeHandle(FILE2 handle)
  
 }
 
+//Set do Diretyório corrente
+void setCurDir(char* addr){
+	curaddr = addr; 
+}
+char* getCurDir(){
+	char* dir = curaddr;
+	return dir;
+}
+
+//Set do Pai do diretório corrente
+void setCurUpDir(char* addr){
+	curupaddr = addr; 
+}
+char* getCurUpDir(){
+	char* dir = curupaddr;
+	return dir;
+}
+
 
