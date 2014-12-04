@@ -237,7 +237,7 @@ unsigned int * getTAAPcurrentPointer(FILE2 handle)
 	if (lastFile->handle != handle) {
 		printf("%s", "filecontrol.c - getTAAPcurrentPointer() ERROR");		
 		return 0; // ERROR
-	}	
+	}
 	else {
 		return &lastFile->currentPointer;
 	}
@@ -667,7 +667,7 @@ void insertNewFreeHandle(FILE2 handle)
 		}
 
 	}
-
+ 
 }
 
 
