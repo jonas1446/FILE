@@ -5,10 +5,12 @@ typedef unsigned char BYTE;
 typedef unsigned short int WORD;
 typedef unsigned int DWORD;
 typedef int BOOL;
+#define MAX_FILE_NAME_SIZE 31
 #define FALSE 0
 #define TRUE 1
 
 typedef int FILE2;
+typedef int DIR2;
 
 #define TYPEVAL_REGULAR     0x01
 #define TYPEVAL_DIRETORIO   0x02
@@ -38,7 +40,7 @@ struct t2fs_record {
     DWORD   bytesFileSize;  //  44:  4 bytes
 
     /* Dois ponteiros diretos, para blocos de dados do arquivo */
-    DWORD   dataPtr[4];     //  48:  8 bytes
+    DWORD   dataPtr[4];     //  40:  16 bytes
 
     /* Ponteiro de indireção simples,
     que aponta para um bloco de índices onde estão ponteiros para blocos de dados do arquivo. */
@@ -82,34 +84,56 @@ struct t2fs_superbloco {
 
 } __attribute__((packed));
 
+typedef struct {
+	char name[MAX_FILE_NAME_SIZE+1];
+	int fileType;
+	unsigned long fileSize;
+} DIRENT2;
+
 // Declaração dos tipos superbloco e bloco
 typedef struct t2fs_superbloco t2fs_superblock;
 typedef struct t2fs_record t2fs_record;
 
 
 /** Retorna a identificação dos implementadores do T2FS. */
-char *t2fs_identify (void);
+int identify2 (char *name, int size);
 
 /** Função usada para criar um novo arquivo no disco. */
-FILE2 t2fs_create (char *nome);
+FILE2 create2 (char *filename);
 
 /** Função usada para remover (apagar) um arquivo do disco. */
-int t2fs_delete (char *nome);
+int delete2 (char *filename);
 
 /** Função que abre um arquivo existente no disco. */
-FILE2 t2fs_open (char *nome);
+FILE2 open2 (char *filename);
 
 /** Função usada para fechar um arquivo. */
-int t2fs_close (FILE2 handle);
+int close2 (FILE2 handle);
 
 /** Função usada para realizar a leitura em um arquivo. */
-int t2fs_read (FILE2 handle, char *buffer, int size);
+int read2 (FILE2 handle, char *buffer, int size);
 
 /** Função usada para realizar a escrita em um arquivo. */
-int t2fs_write (FILE2 handle, char *buffer, int size);
+int write2 (FILE2 handle, char *buffer, int size);
 
 /** Altera o contador de posição (current pointer) do arquivo. */
-int t2fs_seek (FILE2 handle, unsigned int offset);
+int seek2 (FILE2 handle, unsigned int offset);
+
+int mkdir2 (char *pathname);
+
+int rmdir2 (char *pathname);
+
+DIR2 opendir2 (char *pathname);
+
+int readdir2 (DIR2 handle, DIRENT2* dentry);
+
+int closedir2 (DIR2 handle);
+
+int chdir2 (char* pathname);
+
+int getcwd2 (char* pathname, int size);
+
+
 
 int getNameAddress(char * nome, char ** fileName, char ** address);
 
@@ -136,7 +160,6 @@ void printRecordBlock(unsigned int block);
 void printDataBlock(unsigned int block);
 void printIndexBlock(unsigned int block);
 
-
 void dirt2(char* nome);
 void dirt2DataPtr(unsigned int block);
 void dirt2SingleIndPtr(unsigned int block);
@@ -147,7 +170,24 @@ void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord,
 FILE2 t2fs_createDirectory (char * nome);
 int t2fs_deleteDirectory (char *name);
 
+int calcNumberOfBlocks(unsigned int begin, unsigned int end);
 
+int calcFistBlock(unsigned int begin);
 
-int getNameAddress(char * nome, char ** fileName, char ** address);
+int calcFirstBlockOffset(unsigned int begin);
+
+int calcLastBlock(unsigned int end);
+
+int calcLastBlockOffset(unsigned int end);
+
+DWORD getRealBlock(t2fs_record * fileRecord, DWORD block);
+
+int numberOfBlocksToBeAllocated(DWORD lastBlock, DWORD firstBlock, unsigned int handle);
+
+int allocateNewBlock (int handle, int block, t2fs_record* record);
+
+void setBar(char ** pathname);
+
+void setUpAddress(char * nome);
+
 #endif

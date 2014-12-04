@@ -7,6 +7,8 @@
 #include <diskblocks.h>
 #include <filecontrol.h>
 
+char *authors;
+
 /** Informa a identificação dos desenvolvedores do T2FS. */
 int identify2 (char *name, int size)
 {
@@ -1007,12 +1009,12 @@ DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 
 	// Se bloco for menor que endereçamento indireto simples + 2 (dataPtr[0] e dataPtr[1])
 	// Significa o bloco procurado está no bloco de indices de indireção dupla
-	if(block < numberOfPointers+2)
+	if(block < numberOfPointers+4)
 	{
 		// Carrega bloco de índice e retorna a posição
 		indexBlock = loadIndexBlock(fileRecord->singleIndPtr);
 
-		realBlock = indexBlock[(block-2)];
+		realBlock = indexBlock[(block-4)];
 
 		free(indexBlock);
 
@@ -1021,15 +1023,15 @@ DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 	}
 
 	numberOfDoublePointers = BLOCK_SIZE/sizeof(DWORD) * BLOCK_SIZE/sizeof(DWORD);
-	if(block < 2+numberOfPointers+numberOfDoublePointers)
+	if(block < 4+numberOfPointers+numberOfDoublePointers)
 	{
 		// Carrega bloco de índice 1
 		indexBlock = loadIndexBlock(fileRecord->doubleIndPtr);
 
 		// Carrega bloco de índice 2
-		indexBlock2 = loadIndexBlock(indexBlock[(block-2-numberOfPointers)/numberOfPointers]);
+		indexBlock2 = loadIndexBlock(indexBlock[(block-4-numberOfPointers)/numberOfPointers]);
 
-		realBlock = indexBlock2[ (block-2-numberOfPointers) % numberOfPointers ];
+		realBlock = indexBlock2[ (block-4-numberOfPointers) % numberOfPointers ];
 
 		free(indexBlock);
 		free(indexBlock2);
@@ -1142,6 +1144,8 @@ int delete2 (char *filename)
 /** Função write **/
 int write2(FILE2 handle, char *buffer, int size)
 {
+	if(handle == -1) return -1;
+
 	// Tamanho inválido
 	if(size <= 0)
 		return -1;
@@ -1923,9 +1927,9 @@ int chdir2 (char *pathname){
 	}
 
 	setBar(&pathname);
-	   printf("\n\nIIIIIIIIIII\n\n");	 
-    setCurDir(pathname); //Seta diretório corrente
-	   printf("\n\nIIIIIIIIIII\n\n");	  
+		printf("\n\nIIIIIIIIIII\n\n");	 
+    	setCurDir(pathname); //Seta diretório corrente
+		printf("\n\nIIIIIIIIIII\n\n");	  
 	setUpAddress(pathname); //Seta pai do diretorio corrente
 		printf("\n\nIIIIIIIIIII\n\n");	
 	
@@ -1936,10 +1940,15 @@ int chdir2 (char *pathname){
 
 int getcwd2 (char *pathname, int size){
 
+	printf("curaddr %s\n", curaddr);
+	printf("sizeof(curaddr) %d\n", sizeof(curaddr));
+	if(size < sizeof(curaddr))
+	pathname = strdup(curaddr);
+	printf("pathname %s\n", pathname);
 	return 0;
 }
 
-int readdir2 (DIR2 handle, DIRENT2 *dentry){
+int readdir2(DIR2 handle, DIRENT2 *dentry) {
 	
 	return 0;
 }
@@ -1958,6 +1967,12 @@ void dirt2(char* nome){
 
 		if( sameNameFileRecord->dataPtr[1] != -1)
 			dirt2DataPtr(sameNameFileRecord->dataPtr[1]);
+
+		if (sameNameFileRecord->dataPtr[2] != -1)
+			dirt2DataPtr(sameNameFileRecord->dataPtr[2]);
+
+		if( sameNameFileRecord->dataPtr[3] != -1)
+			dirt2DataPtr(sameNameFileRecord->dataPtr[3]);
 
 		if (sameNameFileRecord->singleIndPtr != -1)
 			dirt2SingleIndPtr(sameNameFileRecord->singleIndPtr);
@@ -2077,7 +2092,8 @@ void setName(char ** nome){
 
 }
 
-void setBar(char ** pathname){//Coloca '/' no final da string
+//Coloca '/' no final da string
+void setBar(char ** pathname){
 	 
 	char* pathname_ = *pathname;
   
