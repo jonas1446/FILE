@@ -1927,9 +1927,9 @@ int chdir2 (char *pathname){
 	}
 
 	setBar(&pathname);
-	   printf("\n\nIIIIIIIIIII\n\n");	 
-    setCurDir(pathname); //Seta diretório corrente
-	   printf("\n\nIIIIIIIIIII\n\n");	  
+		printf("\n\nIIIIIIIIIII\n\n");	 
+    	setCurDir(pathname); //Seta diretório corrente
+		printf("\n\nIIIIIIIIIII\n\n");	  
 	setUpAddress(pathname); //Seta pai do diretorio corrente
 		printf("\n\nIIIIIIIIIII\n\n");	
 	
@@ -1940,6 +1940,11 @@ int chdir2 (char *pathname){
 
 int getcwd2 (char *pathname, int size){
 
+	/*printf("curaddr %s\n", getCurDir());
+	printf("sizeof(curaddr) %d\n", sizeof(getCurDir()));
+	if(size < sizeof(getCurDir()))
+	pathname = strdup(getCurDir());
+	printf("pathname %s\n", pathname);*/
 	return 0;
 }
 
@@ -1962,6 +1967,12 @@ void dirt2(char* nome){
 
 		if( sameNameFileRecord->dataPtr[1] != -1)
 			dirt2DataPtr(sameNameFileRecord->dataPtr[1]);
+
+		if (sameNameFileRecord->dataPtr[2] != -1)
+			dirt2DataPtr(sameNameFileRecord->dataPtr[2]);
+
+		if( sameNameFileRecord->dataPtr[3] != -1)
+			dirt2DataPtr(sameNameFileRecord->dataPtr[3]);
 
 		if (sameNameFileRecord->singleIndPtr != -1)
 			dirt2SingleIndPtr(sameNameFileRecord->singleIndPtr);
