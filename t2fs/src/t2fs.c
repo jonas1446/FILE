@@ -7,25 +7,96 @@
 #include <diskblocks.h>
 #include <filecontrol.h>
 
-/** Informa a identificação dos desenvolvedores do T2FS. */
-int identify2 (char *name, int size)
+/** Retorna a identificação dos implementadores do T2FS. */
+char *t2fs_identify (void);
+
+/** Função usada para criar um novo arquivo no disco. */
+t2fs_file t2fs_create (char *nome);
+
+/** Função usada para remover (apagar) um arquivo do disco. */
+int t2fs_delete (char *nome);
+
+/** Função que abre um arquivo existente no disco. */
+t2fs_file t2fs_open (char *nome);
+
+/** Função usada para fechar um arquivo. */
+int t2fs_close (t2fs_file handle);
+
+/** Função usada para realizar a leitura em um arquivo. */
+int t2fs_read (t2fs_file handle, char *buffer, int size);
+
+/** Função usada para realizar a escrita em um arquivo. */
+int t2fs_write (t2fs_file handle, char *buffer, int size);
+
+/** Altera o contador de posição (current pointer) do arquivo. */
+int t2fs_seek (t2fs_file handle, unsigned int offset);
+
+
+/** Funções auxiliares **/
+/** Função que separa o caminho do arquivo em endereço e o nome do arquivo **/
+// Retorna -1 se caminho 
+int getNameAddress(char * nome, char ** fileName, char ** address);
+
+void setName(char ** nome);
+
+t2fs_record* EmptyRecordDoubleIndPtr(unsigned int block, unsigned int* recordBlock, char * fileName,BOOL* isTheSameFile);
+
+t2fs_record* EmptyRecordSingleIndPtr(unsigned int block, unsigned int* recordBlock, char * fileName, BOOL* isTheSameFile);
+
+void removeBlocksFromFile(t2fs_record * fileRecord);
+
+void removeRecordBlockFromDirectory(DWORD recordBlock, t2fs_record * directoryRecord);
+
+t2fs_record* findEmptyRecord(unsigned int block,  char * fileName, BOOL* isTheSameFile);
+
+t2fs_record * newFileRecord(char * name, t2fs_record * newFileRecord);
+
+void writeNewFileRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome);
+
+void writeRecord(unsigned int recordBlock, t2fs_record* fileRecord);
+
+int removeRecord(unsigned int recordBlock, t2fs_record* fileRecord);
+
+void printRecordBlock(unsigned int block);
+void printDataBlock(unsigned int block);
+void printIndexBlock(unsigned int block);
+
+int numberOfBlocksToBeAllocated(DWORD lastBlock, DWORD firstBlock, unsigned int handle);
+int allocateNewBlock (int handle, int block, t2fs_record* record);
+
+/** READ WRITE **/
+int calcNumberOfBlocks(unsigned int begin, unsigned int end);
+DWORD getRealBlock(t2fs_record * fileRecord, DWORD block);
+int calcFistBlock(unsigned int begin);
+int calcLastBlock(unsigned int end);
+int calcFirstBlockOffset(unsigned int begin);
+int calcLastBlockOffset(unsigned int end);
+
+void dirt2(char* nome);
+void dirt2DataPtr(unsigned int block);
+void dirt2SingleIndPtr(unsigned int block);
+void dirt2DoubleIndPtr(unsigned int block);
+
+t2fs_record * newDirectoryRecord(char * name, t2fs_record * newDirectoryRecord);
+void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome);
+t2fs_file t2fs_createDirectory (char * nome);
+int t2fs_deleteDirectory (char *name);
+
+/** Retorna a identificação dos implementadores do T2FS. */
+char *t2fs_identify (void)
 {
-	int i;
-	for(i=0;i<size;i++) {
-		if(name[i] < 32 || name[i] > 122) return -1;
-	}	
-	//printf("%s", authors); 
-	authors = malloc(size);
-	memcpy(authors, name, size);
-	return 0;
+	int size = 66;
+	char * developers;
+	developers = malloc(size);
+	memcpy(developers, "Alexandre Gustavo Wermann (218767) e Felipe Salerno Prado (219829)", size);
+	return developers;
 }
 
-FILE2 create2 (char *filename)
+t2fs_file t2fs_create (char * nome)
 {
 	// Entrada:
-	// Ex.: /dir1/arquivo OR ./dir1/arquivo OR (on dir1) ../dir1/arquivo
+	// Ex.: /dir1/arquivo
 	// Separa string, para pegar apenas o /dir (deixa o último de fora)
-	// Caso já haja um arquivo com mesmo nome, retornar erro.
 
 	t2fs_record * directoryRecord = NULL;
 	// Bloco onde existe entrada vazia
@@ -40,8 +111,10 @@ FILE2 create2 (char *filename)
 	BOOL isTheSameFile = FALSE;
 	BOOL isThereSameNameFile = FALSE;
 	
-	invalidAddress = getNameAddress(filename, &fileName, &address);
-
+	setName(&nome);
+ 	
+	invalidAddress = getNameAddress(nome, &fileName, &address);
+ 
 	// Impossível criar arquivo
 	if(invalidAddress == -1)	
 		return -1;
@@ -57,24 +130,19 @@ FILE2 create2 (char *filename)
 		return -1;	
 	
 
-	sameNameFileRecord = findRecord(filename, TYPEVAL_REGULAR, &freeBlock);
+	sameNameFileRecord = findRecord(nome, TYPEVAL_REGULAR, &freeBlock);
 
 	if (sameNameFileRecord != NULL)
 		isThereSameNameFile = TRUE;
 
-	if(directoryRecord->dataPtr[0] != -1 || 
-		directoryRecord->dataPtr[1] != -1  ||
-		directoryRecord->dataPtr[2] != -1  ||
-		directoryRecord->dataPtr[3] != -1  ||
-		directoryRecord->singleIndPtr != -1 || 
-		directoryRecord->doubleIndPtr != -1 || 
-		isThereSameNameFile == TRUE)
+	if(directoryRecord->dataPtr[0] != -1 || directoryRecord->dataPtr[1] != -1  || directoryRecord->singleIndPtr != -1 || directoryRecord->doubleIndPtr != -1 || isThereSameNameFile == TRUE)
 	{
 		// Carrega bloco para achar próxima posição disponível (lista de records)
 		fileRecord = findEmptyRecord(directoryRecord->dataPtr[0], fileName, &isTheSameFile);
 	
 		// Offset dentro do bloco para posição disponível
-		if(fileRecord != NULL) {
+		if(fileRecord != NULL)
+		{
 			recordBlock = directoryRecord->dataPtr[0];
 		}
 		else
@@ -82,13 +150,9 @@ FILE2 create2 (char *filename)
 			//free(recordsBlock);
 
 			// dataPtr[1] não está vazio
-			if(directoryRecord->dataPtr[1] != -1  || 
-				directoryRecord->dataPtr[2] != -1  || 
-				directoryRecord->dataPtr[3] != -1  || 
-				directoryRecord->singleIndPtr != -1 || 
-				directoryRecord->doubleIndPtr != -1)
+			if(directoryRecord->dataPtr[1] != -1  || directoryRecord->singleIndPtr != -1 || directoryRecord->doubleIndPtr != -1)
 			{
-				// Carrega bloco do dataPtr[1]
+				// Carrega bloco do dataPtr[2]
 				fileRecord = findEmptyRecord(directoryRecord->dataPtr[1], fileName, &isTheSameFile);
 
 				// Offset dentro do bloco para posição disponível
@@ -98,136 +162,65 @@ FILE2 create2 (char *filename)
 				}
 				else
 				{
-
-					if(directoryRecord->dataPtr[2] != -1  || 
-						directoryRecord->dataPtr[3] != -1  || 
-						directoryRecord->singleIndPtr != -1 || 
-						directoryRecord->doubleIndPtr != -1)
+					if(directoryRecord->singleIndPtr != -1 || directoryRecord->doubleIndPtr != -1)
 					{
-						// Carrega bloco do dataPtr[2]
-						fileRecord = findEmptyRecord(directoryRecord->dataPtr[2], fileName, &isTheSameFile);
 
-						// Offset dentro do bloco para posição disponível
-						if(fileRecord != NULL)
+						fileRecord = EmptyRecordSingleIndPtr(directoryRecord->singleIndPtr, &recordBlock, fileName, &isTheSameFile);
+
+						if (fileRecord == NULL)
 						{
-							recordBlock = directoryRecord->dataPtr[1];
-						}
-						else
-						{
-							if(directoryRecord->dataPtr[3] != -1  || 
-								directoryRecord->singleIndPtr != -1 || 
-								directoryRecord->doubleIndPtr != -1)
+
+							if (directoryRecord->doubleIndPtr != -1)
 							{
-								// Carrega bloco do dataPtr[3]
-								fileRecord = findEmptyRecord(directoryRecord->dataPtr[3], fileName, &isTheSameFile);
 
-								// Offset dentro do bloco para posição disponível
-								if(fileRecord != NULL)
-								{
-									recordBlock = directoryRecord->dataPtr[1];
-								}
-								else
-								{
-									if(directoryRecord->singleIndPtr != -1 || 
-										directoryRecord->doubleIndPtr != -1)
-									{
-
-										fileRecord = EmptyRecordSingleIndPtr(directoryRecord->singleIndPtr, &recordBlock, fileName, &isTheSameFile);
-
-										if (fileRecord == NULL)
-										{
-
-											if (directoryRecord->doubleIndPtr != -1)
-											{
-
-												fileRecord = EmptyRecordDoubleIndPtr(directoryRecord->doubleIndPtr, &recordBlock, fileName, &isTheSameFile);
-												if (fileRecord == NULL)
-													return -1;
-											}
-											else
-											{
-												 if(!areThereFreeBlocks(4))
-													return -1;
-	
-					  							 freeBlock = findFreeBlock();
-					   							 allocateIndexBlock(freeBlock);
-					   							 directoryRecord->doubleIndPtr = freeBlock;
-
-												if (directoryBlock != -1)
-					   								writeRecord(directoryBlock, directoryRecord);
-												else
-													setSuperblockDoubleIndPtr(freeBlock);
-					   							// writeRecordsBlock(directoryBlock, directoryRecord);
-
-					   					 		fileRecord = EmptyRecordDoubleIndPtr(directoryRecord->doubleIndPtr, &recordBlock, fileName, &isTheSameFile);
-											}
-					
-										}
-							
-					
-									}
-									else
-									{			
-										 if(!areThereFreeBlocks(3))
-											return -1;
-	
-					  					 freeBlock = findFreeBlock();
-					   					 allocateIndexBlock(freeBlock);
-					   					 directoryRecord->singleIndPtr = freeBlock;
-
-										if (directoryBlock != -1)
-					   						writeRecord(directoryBlock, directoryRecord);
-										else
-											setSuperblockSingleIndPtr(freeBlock);
-					   				        // writeRecordsBlock(directoryBlock, directoryRecord);
-
-					   					fileRecord = EmptyRecordSingleIndPtr(directoryRecord->singleIndPtr, &recordBlock, fileName, &isTheSameFile);
-
-									}
-								}
+								fileRecord = EmptyRecordDoubleIndPtr(directoryRecord->doubleIndPtr, &recordBlock, fileName, &isTheSameFile);
+								if (fileRecord == NULL)
+									return -1;
 							}
 							else
-							{	
-								// Se não possui 
-								if(!areThereFreeBlocks(2))
+							{
+								 if(!areThereFreeBlocks(4))
 									return -1;
-			
-								// Aloca bloco para records
-								freeBlock = findFreeBlock();
-								allocateRecordsBlock(freeBlock);
-								directoryRecord->dataPtr[3] = freeBlock;
+		
+	  							 freeBlock = findFreeBlock();
+	   							 allocateIndexBlock(freeBlock);
+	   							 directoryRecord->doubleIndPtr = freeBlock;
 
 								if (directoryBlock != -1)
-					   				writeRecord(directoryBlock, directoryRecord);
+	   								writeRecord(directoryBlock, directoryRecord);
 								else
-									setSuperblockDataPtr1(freeBlock);
+									setSuperblockDoubleIndPtr(freeBlock);
+	   							// writeRecordsBlock(directoryBlock, directoryRecord);
 
-								fileRecord = findEmptyRecord(directoryRecord->dataPtr[3], fileName, &isTheSameFile);
-								recordBlock = directoryRecord->dataPtr[3];
-								//writeRecordsBlock(directoryBlock, directoryRecord);
+	   					 		fileRecord = EmptyRecordDoubleIndPtr(directoryRecord->doubleIndPtr, &recordBlock, fileName, &isTheSameFile);
+
+
+
 							}
-						}				
+						
+						}
+								
+						
 					}
 					else
-					{	
-						// Se não possui 
-						if(!areThereFreeBlocks(2))
+					{			
+						 if(!areThereFreeBlocks(3))
 							return -1;
-	
-						// Aloca bloco para records
-						freeBlock = findFreeBlock();
-						allocateRecordsBlock(freeBlock);
-						directoryRecord->dataPtr[2] = freeBlock;
+		
+	  					 freeBlock = findFreeBlock();
+	   					 allocateIndexBlock(freeBlock);
+	   					 directoryRecord->singleIndPtr = freeBlock;
 
 						if (directoryBlock != -1)
-			   				writeRecord(directoryBlock, directoryRecord);
+	   						writeRecord(directoryBlock, directoryRecord);
 						else
-							setSuperblockDataPtr1(freeBlock);
+							setSuperblockSingleIndPtr(freeBlock);
+	   				        // writeRecordsBlock(directoryBlock, directoryRecord);
 
-						fileRecord = findEmptyRecord(directoryRecord->dataPtr[2], fileName, &isTheSameFile);
-						recordBlock = directoryRecord->dataPtr[2];
-						//writeRecordsBlock(directoryBlock, directoryRecord);
+	   					fileRecord = EmptyRecordSingleIndPtr(directoryRecord->singleIndPtr, &recordBlock, fileName, &isTheSameFile);
+
 					}
+					
 
 				}
 
@@ -295,7 +288,17 @@ FILE2 create2 (char *filename)
 			writeRecord(directoryBlock, directoryRecord);	
 		else
 			setSuperblockFileSize(directoryRecord->bytesFileSize, directoryRecord->blocksFileSize);
+
+
+
 	}
+
+
+	
+
+	
+
+
 
 	//emptyRecordBlock = findEmptyRecordsBlock(directoryRecord,&recordOffset, &recordBlock, fileName, directoryBlock);
 
@@ -304,11 +307,11 @@ FILE2 create2 (char *filename)
 	/*if(fileRecord != NULL)
 		return -1;*/
 
-	writeNewFileRecord(recordBlock, fileRecord, filename);
+	writeNewFileRecord(recordBlock, fileRecord, nome);
 
 	//printRecordBlock(emptyRecordBlock);
-	
-	return open2(filename);
+
+	return t2fs_open(nome);
 
 }
 
@@ -344,7 +347,6 @@ void writeNewFileRecord (unsigned int recordBlock, t2fs_record* fileRecord, char
 			
 }
 
-//void writeRecord (unsigned int recordBlock, t2fs_record* fileRecord)
 void writeRecord (unsigned int recordBlock, t2fs_record* fileRecord)
 {
 	t2fs_record* loadedBlock;
@@ -375,7 +377,6 @@ void writeRecord (unsigned int recordBlock, t2fs_record* fileRecord)
 
 // Remove record de um bloco de records
 // Retorna -1 se o record é o último do bloco
-//int removeRecord(unsigned int recordBlock, t2fs_record * fileRecord)
 int removeRecord(unsigned int recordBlock, t2fs_record * fileRecord)
 {
 	t2fs_record* loadedBlock;
@@ -409,7 +410,6 @@ int removeRecord(unsigned int recordBlock, t2fs_record * fileRecord)
 
 
 // Aloca área do disco para dados e cria record para arquivo
-//t2fs_record * newFileRecord(char * name, t2fs_record * newFileRecord)
 t2fs_record * newFileRecord(char * name, t2fs_record * newFileRecord)
 {
 	unsigned int freeBlockNumber;
@@ -427,8 +427,6 @@ t2fs_record * newFileRecord(char * name, t2fs_record * newFileRecord)
 	newFileRecord->bytesFileSize = 0;
 	newFileRecord->dataPtr[0] = freeBlockNumber;
 	newFileRecord->dataPtr[1] = -1;
-	newFileRecord->dataPtr[2] = -1;
-	newFileRecord->dataPtr[3] = -1;
 	newFileRecord->singleIndPtr = -1;
 	newFileRecord->doubleIndPtr = -1;
 
@@ -509,18 +507,6 @@ void removeBlocksFromFile(t2fs_record * fileRecord)
 		fileRecord->dataPtr[1] = -1;
 	}
 
-	if(fileRecord->dataPtr[2] != -1)
-	{
-		deallocateDataBlock(fileRecord->dataPtr[2]);
-		fileRecord->dataPtr[2] = -1;
-	}
-
-	if(fileRecord->dataPtr[3] != -1)
-	{
-		deallocateDataBlock(fileRecord->dataPtr[3]);
-		fileRecord->dataPtr[3] = -1;
-	}
-
 
 	// Desaloca blocos ponteiro indireto simples
 	if(fileRecord->singleIndPtr != -1)
@@ -587,20 +573,6 @@ void removeRecordBlockFromDirectory(DWORD recordBlock, t2fs_record * directoryRe
 		return;
 	}
 
-	if(directoryRecord->dataPtr[2] != recordBlock)
-	{
-		deallocateDataBlock(directoryRecord->dataPtr[2]);
-		directoryRecord->dataPtr[2] = -1;
-		return;
-	}
-
-	if(directoryRecord->dataPtr[3] != recordBlock)
-	{
-		deallocateDataBlock(directoryRecord->dataPtr[3]);
-		directoryRecord->dataPtr[3] = -1;
-		return;
-	}
-
 
 	// Desaloca blocos ponteiro indireto simples
 	if(directoryRecord->singleIndPtr != recordBlock)
@@ -648,6 +620,8 @@ void removeRecordBlockFromDirectory(DWORD recordBlock, t2fs_record * directoryRe
 
 }
 
+
+
 t2fs_record* EmptyRecordSingleIndPtr(unsigned int block, unsigned int* recordBlock, char * fileName, BOOL* isTheSameFile){
 
 	DWORD * loadedBlock;
@@ -681,11 +655,13 @@ t2fs_record* EmptyRecordSingleIndPtr(unsigned int block, unsigned int* recordBlo
 	  *recordBlock = loadedBlock[i];
 
 	  return record;		
+		
 	}
 
 	return NULL;
  
 }
+
 
 t2fs_record* EmptyRecordDoubleIndPtr(unsigned int block, unsigned int* recordBlock, char * fileName, BOOL* isTheSameFile){
 
@@ -721,11 +697,92 @@ t2fs_record* EmptyRecordDoubleIndPtr(unsigned int block, unsigned int* recordBlo
 	}
 
 
-	return NULL;	
+	return NULL;
+	
+}
+void setName(char ** nome){
+    
+	char* nome_ = *nome;
+
+  if (nome_[0] == '.' && nome_[1] == '.' && nome_[2] == '/')//Aponta para o pai
+  {
+	 
+		 char* nomeaux = (char*) malloc(strlen(getCurUpDir()) + strlen(*nome) -3);//retira 3 elemesntos ../
+         strcpy(nomeaux , getCurUpDir()); 
+		 int j;  
+         for (j=3 ; j<strlen(*nome); j++){
+		 
+		 nomeaux[strlen(getCurUpDir()) + j - 3]= nome_[j];
+		 
+		 }	
+		 
+       *nome = (char*) malloc(strlen(getCurUpDir()) + strlen(*nome) -3);
+       *nome = nomeaux;
+		
+		// printf("AAAAAAAAAAAAAAAA%sAAAAAAAAAAAA",nomeaux); 
+	  
+  
+  }else if (nome_[0] == '.' && nome_[1] == '/' )//Aponta para si próprio
+  {
+        char* nomeaux = (char*) malloc(strlen(getCurDir()) + strlen(*nome) -2);//retira 2 elemesntos ../
+         strcpy(nomeaux , getCurDir()); 
+		 int j;  
+         for (j=2 ; j<strlen(*nome); j++){
+		 
+		 nomeaux[strlen(getCurDir()) + j - 2]= nome_[j];
+		 
+		 }	
+	
+       *nome = (char*) malloc(strlen(getCurDir()) + strlen(*nome) -2);
+       *nome = nomeaux;
+  //printf("BBBBBBBBBBBBBBB%sBBBBBBBBBBBBBBBB",nomeaux);
+  }
+  else if(nome_[0] != '/')//Endereço relativo
+  {	
+    char* nomeaux = (char*) malloc(strlen(getCurDir()) + strlen(*nome));
+	
+    strcpy(nomeaux , getCurDir()); 
+	strcat(nomeaux,*nome);
+	*nome = (char*) malloc(strlen(getCurDir()) + strlen(*nome));
+    *nome = nomeaux;
+	
+	
+  }
+
+}
+
+void setBar(char ** pathname){//Coloca '/' no final da string
+	 
+  char* pathname_ = *pathname;
+ 
+  
+    if(pathname_[strlen(pathname_)-1] != '/' && pathname_[strlen(pathname_)-1] != '\0')
+	{ 
+	   
+	   *pathname = (char*) malloc(strlen(pathname_) + 1);
+	   strcpy(*pathname , pathname_); 
+	   strcat(*pathname,"/");
+	  
+	}else if (pathname_[strlen(pathname_)-2] != '/'&& pathname_[strlen(pathname_)-1] == '\0')
+	{	
+	
+	   *pathname = (char*) malloc(strlen(pathname_) - 1);
+	   pathname_[strlen(pathname_)-1]='/';	
+	   *pathname = pathname_;
+	 
+	}else if (pathname_[strlen(pathname_)-2] == '/'&& pathname_[strlen(pathname_)-1] == '\0')
+	{
+       *pathname = (char*) malloc(strlen(pathname_) - 1);
+	   strncpy(*pathname , pathname_ , strlen(pathname_) - 1); 
+
+     	
+	}
+	
+	
+   
 }
 
 
-// Separa o nome do arquivo do path (string)
 int getNameAddress(char * nome, char ** fileName, char ** address)
 {
 	int barPosition = 0;
@@ -763,36 +820,86 @@ int getNameAddress(char * nome, char ** fileName, char ** address)
 	*(*fileName+i-barPosition) = '\0';
 
 	// Caminho inválido: /dir1/teste4-dir1/ (com barra no final)
-	if(*fileName[0] == '\0') {
+	if(*fileName[0] == '\0')
 		return -1;
-	}
 
 	return 0;
+
+
 }
+
+
+void setUpAddress(char * nome)
+{  
+	int barPosition1 = -1;//última barra
+	int barPosition2 = -1;//penúltima barra
+	int i = 0;
+
+	
+	while(nome[i] != '\0' && i < strlen(nome))
+	{
+		if(nome[i] == '/')
+		{
+		    if(barPosition1 == barPosition2)//Primeira vez
+			{
+			  barPosition1 = i;
+			}else
+			{
+			barPosition2 = barPosition1;
+			barPosition1 = i;
+			}
+		
+			
+		}
+		i++;
+	}
+
+	
+    if(barPosition1==0 && barPosition2==-1)
+	{printf("\n\nooo1ooooo\n\n");
+    	setCurUpDir("/");
+	}else 
+	{	 printf("\n\nooo%dooooo\n\n",barPosition2);
+	     char* addrup  = (char*) malloc(barPosition2+1);
+		 int j;  
+		
+         for (j=0 ; j<=barPosition2; j++){
+		 
+		 addrup[j]= nome[j];
+		 
+		 }	
+		 
+		 setCurUpDir(addrup);
+	}
+
+	
+
+
+}
+
+
 
 void printRecordBlock(unsigned int block)
 {
-	int i;
+ int i;
 	t2fs_record* loadedBlock;
 
 	loadedBlock = loadRecordsBlock(block);
 
-	for(i=0; i< BLOCK_SIZE / RECORD_SIZE ; i++)
-	{
-	 	 
-		printf("\n%d\n\n",i);
-		printf("TypeVal: %d\n",loadedBlock[i].TypeVal);
-		printf("name: %s\n", loadedBlock[i].name);
-		printf("blocksFileSize: %d\n",loadedBlock[i].blocksFileSize);
-		printf("bytesFileSize: %d\n",loadedBlock[i].bytesFileSize);
-		printf("dataPtr[0]: %d\n",loadedBlock[i].dataPtr[0]);
-		printf("dataPtr[1]: %d\n",loadedBlock[i].dataPtr[1]);
-	 	printf("dataPtr[2]: %d\n",loadedBlock[i].dataPtr[2]);
-		printf("dataPtr[3]: %d\n",loadedBlock[i].dataPtr[3]);
-		printf("singleIndPtr: %d\n",loadedBlock[i].singleIndPtr);
-		printf("doubleIndPtr: %d\n",loadedBlock[i].doubleIndPtr);
-	 
-	}
+ for(i=0; i< BLOCK_SIZE / RECORD_SIZE ; i++)
+ {
+ 	 
+ 	printf("\n%d\n\n",i);
+ 	printf("TypeVal: %d\n",loadedBlock[i].TypeVal);
+ 	printf("name: %s\n", loadedBlock[i].name);
+ 	printf("blocksFileSize: %d\n",loadedBlock[i].blocksFileSize);
+ 	printf("bytesFileSize: %d\n",loadedBlock[i].bytesFileSize);
+ 	printf("dataPtr[0]: %d\n",loadedBlock[i].dataPtr[0]);
+ 	printf("dataPtr[1]: %d\n",loadedBlock[i].dataPtr[1]);
+ 	printf("singleIndPtr: %d\n",loadedBlock[i].singleIndPtr);
+ 	printf("doubleIndPtr: %d\n",loadedBlock[i].doubleIndPtr);
+  
+ }
 
 	free(loadedBlock);
 
@@ -800,15 +907,15 @@ void printRecordBlock(unsigned int block)
 
 void printDataBlock(unsigned int block)
 {
-	int i;
+ int i;
 	char* loadedBlock;
 
 	loadedBlock = loadBlock(block);
 
-	for(i=0; i< BLOCK_SIZE; i++)
-	{
-		printf("\n%c",loadedBlock[i]);
-	}
+ for(i=0; i< BLOCK_SIZE; i++)
+ {
+ 	  	printf("\n%c",loadedBlock[i]);
+ }
 
 	free(loadedBlock);
 
@@ -816,29 +923,36 @@ void printDataBlock(unsigned int block)
 
 void printIndexBlock(unsigned int block)
 {
-	int i;
+	 int i;
 	DWORD * loadedBlock;
 
 	loadedBlock = loadIndexBlock(block);
 
-	for(i=0; i< BLOCK_SIZE/sizeof(DWORD); i++)
-	{
-		  	printf("\n%d",loadedBlock[i]);
-	}
+ for(i=0; i< BLOCK_SIZE/sizeof(DWORD); i++)
+ {
+ 	  	printf("\n%d",loadedBlock[i]);
+ }
 	free(loadedBlock);
 }
 
 
+
 /******* T2FS_OPEN  *******/
-FILE2 open2(char *filename)
+t2fs_file t2fs_open(char * nome)
 {
 
 	unsigned int fileBlock;
-	FILE2 handle;
+	t2fs_file handle;
 
 	t2fs_record * fileRecord = NULL;
+    
+	setName(&nome);
+	 
+	puts(nome);
 
-	fileRecord = findRecord(filename, TYPEVAL_REGULAR, &fileBlock);
+	fileRecord = findRecord(nome, TYPEVAL_REGULAR, &fileBlock);
+
+	puts(nome);
 
 	// Não achou o arquivo
 	if(fileRecord == NULL)
@@ -851,18 +965,15 @@ FILE2 open2(char *filename)
 
 
 /****** T2FS_CLOSE ******/
-int close2 (FILE2 handle)
+int t2fs_close(t2fs_file handle)
 {
-	if(handle == -1) return -1;	
 	return removeFileTAAP(handle);
 }
 
 
 /**** T2FS READ ****/
-int read2 (FILE2 handle, char *buffer, int size)
+int t2fs_read(t2fs_file handle, char * buffer, int size)
 {
-	if(handle == -1) return -1;
-
 	// Tamanho inválido
 	if(size <= 0)
 		return -1;
@@ -877,6 +988,7 @@ int read2 (FILE2 handle, char *buffer, int size)
 	unsigned int * currentPointer = getTAAPcurrentPointer(handle);
 
 	t2fs_record * fileRecord = getTDAARecord(handle);
+
 
 	int firstBlock = calcFistBlock(*currentPointer);
 	int lastBlock = calcLastBlock(*currentPointer+size);
@@ -954,37 +1066,31 @@ int read2 (FILE2 handle, char *buffer, int size)
 
 }
 
-//int calcNumberOfBlocks(unsigned int begin, unsigned int end)
 int calcNumberOfBlocks(unsigned int begin, unsigned int end)
 {
 	return end - begin + 1;
 }
 
-//int calcFistBlock(unsigned int begin)
 int calcFistBlock(unsigned int begin)
 {
 	return begin/BLOCK_SIZE;
 }
 
-//int calcFirstBlockOffset(unsigned int begin)
 int calcFirstBlockOffset(unsigned int begin)
 {
 	return begin%BLOCK_SIZE;
 }
 
-//int calcLastBlock(unsigned int end)
 int calcLastBlock(unsigned int end)
 {
 	return end/BLOCK_SIZE;
 }
 
-//int calcLastBlockOffset(unsigned int end)
 int calcLastBlockOffset(unsigned int end)
 {
 	return end%BLOCK_SIZE;
 }
 
-//DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 {
 
@@ -1002,27 +1108,19 @@ DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 	{
 		return fileRecord->dataPtr[1];
 	}
-	else if(block == 2)
-	{
-		return fileRecord->dataPtr[2];
-	}
-	else if(block == 3)
-	{
-		return fileRecord->dataPtr[3];
-	}
 
 	// Número de ponteiros no bloco de índice
 	// Ou seja, número de bloco que podem ser endereçados
 	numberOfPointers = BLOCK_SIZE/sizeof(DWORD);
 
-	// Se bloco for menor que endereçamento indireto simples + 4 (dataPtr[0], dataPtr[1], dataPtr[2] e dataPtr[3])
+	// Se bloco for menor que endereçamento indireto simples + 2 (dataPtr[0] e dataPtr[1])
 	// Significa o bloco procurado está no bloco de indices de indireção dupla
-	if(block < numberOfPointers+4)
+	if(block < numberOfPointers+2)
 	{
 		// Carrega bloco de índice e retorna a posição
 		indexBlock = loadIndexBlock(fileRecord->singleIndPtr);
 
-		realBlock = indexBlock[(block-4)];
+		realBlock = indexBlock[(block-2)];
 
 		free(indexBlock);
 
@@ -1031,15 +1129,15 @@ DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 	}
 
 	numberOfDoublePointers = BLOCK_SIZE/sizeof(DWORD) * BLOCK_SIZE/sizeof(DWORD);
-	if(block < 4+numberOfPointers+numberOfDoublePointers)
+	if(block < 2+numberOfPointers+numberOfDoublePointers)
 	{
 		// Carrega bloco de índice 1
 		indexBlock = loadIndexBlock(fileRecord->doubleIndPtr);
 
 		// Carrega bloco de índice 2
-		indexBlock2 = loadIndexBlock(indexBlock[(block-4-numberOfPointers)/numberOfPointers]);
+		indexBlock2 = loadIndexBlock(indexBlock[(block-2-numberOfPointers)/numberOfPointers]);
 
-		realBlock = indexBlock2[ (block-4-numberOfPointers) % numberOfPointers ];
+		realBlock = indexBlock2[ (block-2-numberOfPointers) % numberOfPointers ];
 
 		free(indexBlock);
 		free(indexBlock2);
@@ -1055,9 +1153,8 @@ DWORD getRealBlock(t2fs_record * fileRecord, DWORD block)
 }
 
 /** Atualiza ponteiro **/
-int seek2 (FILE2 handle, unsigned int offset)
+int t2fs_seek (t2fs_file handle, unsigned int offset)
 {
-	if(handle == -1) return -1;
 
 	// Retorna o record do arquivo
 	t2fs_record * fileRecord = getTDAARecord(handle);
@@ -1084,7 +1181,7 @@ int seek2 (FILE2 handle, unsigned int offset)
 }
 
 /** Deleta arquivo **/
-int delete2 (char * filename)
+int t2fs_delete (char * name)
 {
 
 	t2fs_record * fileRecord;
@@ -1096,12 +1193,14 @@ int delete2 (char * filename)
 	char * fileName;
 	char * address;
 
+	setName(&name);
+	
 	// Arquivo não encontrado
-	if(getNameAddress(filename, &fileName, &address) == -1)
+	if(getNameAddress(name, &fileName, &address) == -1)
 		return -1;
 
 	// Acha o arquivo
-	fileRecord = findRecord(filename,TYPEVAL_REGULAR,&fileRecordBlock);
+	fileRecord = findRecord(name,TYPEVAL_REGULAR,&fileRecordBlock);
 
 	// Não encontrou o arquivo
 	if(fileRecord == NULL)
@@ -1128,6 +1227,7 @@ int delete2 (char * filename)
 			writeSuperblock();
 			directoryRecord->bytesFileSize -= RECORD_SIZE;
 			directoryRecord->blocksFileSize -= 1;
+
 		}
 		else
 		{
@@ -1142,6 +1242,7 @@ int delete2 (char * filename)
 
 	}
 
+
 	return 0;
 
 }
@@ -1149,10 +1250,9 @@ int delete2 (char * filename)
 
 
 /** Função write **/
-int write2 (FILE2 handle, char *buffer, int size)
+
+int t2fs_write(t2fs_file handle, char * buffer, int size)
 {
-	if(handle == -1) return -1;	
-	
 	// Tamanho inválido
 	if(size <= 0)
 		return -1;
@@ -1297,6 +1397,7 @@ int write2 (FILE2 handle, char *buffer, int size)
 	return size;
 }
 
+
 int numberOfBlocksToBeAllocated(DWORD lastBlock, DWORD firstBlock, unsigned int handle)
 {
 
@@ -1343,6 +1444,7 @@ int numberOfBlocksToBeAllocated(DWORD lastBlock, DWORD firstBlock, unsigned int 
 	else
 		return -1;
 }
+
 
 
 
@@ -1485,6 +1587,7 @@ void dirt2(char* nome){
 	}
 }
 
+
 void dirt2DataPtr(unsigned int block){
 
 	t2fs_record * loadedBlock;
@@ -1528,6 +1631,7 @@ void dirt2SingleIndPtr(unsigned int block){
 	}
 }
 
+
 void dirt2DoubleIndPtr(unsigned int block){
 
 	DWORD * loadedBlock;
@@ -1545,7 +1649,7 @@ void dirt2DoubleIndPtr(unsigned int block){
 	
 }
 
-int mkdir2 (char *pathname)
+t2fs_file t2fs_createDirectory (char * nome)
 {
 	// Entrada:
 	// Ex.: /dir1/arquivo
@@ -1563,17 +1667,17 @@ int mkdir2 (char *pathname)
 	unsigned int freeBlock;
 	BOOL isTheSameFile = FALSE;
 	BOOL isThereSameNameFile = FALSE;
-		
-	invalidAddress = getNameAddress(pathname, &fileName, &address);
-
-	printf("%s", "->");
+	
+	setName(&nome);
+	
+  		
+	
+	
+	invalidAddress = getNameAddress(nome, &fileName, &address);
 
 	// Impossível criar arquivo
-	if(invalidAddress == -1) {
-		printf("%s", "2! - ");
+	if(invalidAddress == -1)	
 		return -1;
-	}
-
 
 	// fileName => nome do arquivo
 	// address => endereço do arquivo
@@ -1582,48 +1686,26 @@ int mkdir2 (char *pathname)
 	directoryRecord = findRecord(address, TYPEVAL_DIRETORIO, &directoryBlock);
 	
 	// Diretório pai encontrado
-	if(directoryRecord == NULL) {
-		printf("%s", "3! - ");
+	if(directoryRecord == NULL)
+	{
 		return -1;	
 	}
 
-	sameNameFileRecord = findRecord(pathname, TYPEVAL_DIRETORIO, &freeBlock);
+	sameNameFileRecord = findRecord(nome, TYPEVAL_DIRETORIO, &freeBlock);
 
 	if (sameNameFileRecord != NULL)
 		isThereSameNameFile = TRUE;
 
 	if (isThereSameNameFile)
 	{
-		if(sameNameFileRecord->dataPtr[0] != -1 || 
-			sameNameFileRecord->dataPtr[1] != -1 || 
-			sameNameFileRecord->dataPtr[2] != -1 || 
-			sameNameFileRecord->dataPtr[3] != -1 || 
-			sameNameFileRecord->singleIndPtr != -1 || 
-			sameNameFileRecord->doubleIndPtr != -1) {
-
-			printf("sameNameFileRecord->dataPtr[0]: %d\n", sameNameFileRecord->dataPtr[0]);		
-			printf("sameNameFileRecord->dataPtr[1]: %d\n", sameNameFileRecord->dataPtr[1]);		
-			printf("sameNameFileRecord->dataPtr[2]: %d\n", sameNameFileRecord->dataPtr[2]);		
-			printf("sameNameFileRecord->dataPtr[3]: %d\n", sameNameFileRecord->dataPtr[3]);		
-			printf("sameNameFileRecord->singleIndPtr: %d\n", sameNameFileRecord->singleIndPtr);		
-			printf("sameNameFileRecord->doubleIndPtr: %d\n", sameNameFileRecord->doubleIndPtr);		
-
-			printRecordBlock(sameNameFileRecord->dataPtr[0]);
-
-			printf("%s", "4! - ");
+		if(sameNameFileRecord->dataPtr[0] != -1 || sameNameFileRecord->dataPtr[1] != -1 || sameNameFileRecord->singleIndPtr != -1 || sameNameFileRecord->doubleIndPtr != -1)
 			return -1;
-
-		}
 
 	}
 
-	if(directoryRecord->dataPtr[0] != -1 ||
-		directoryRecord->dataPtr[1] != -1  ||
-		directoryRecord->dataPtr[2] != -1  ||
-		directoryRecord->dataPtr[3] != -1  ||
-		directoryRecord->singleIndPtr != -1 ||
-		directoryRecord->doubleIndPtr != -1 ||
-		isThereSameNameFile == TRUE) {
+
+	if(directoryRecord->dataPtr[0] != -1 || directoryRecord->dataPtr[1] != -1  || directoryRecord->singleIndPtr != -1 || directoryRecord->doubleIndPtr != -1 || isThereSameNameFile == TRUE)
+	{
 		// Carrega bloco para achar próxima posição disponível (lista de records)
 		fileRecord = findEmptyRecord(directoryRecord->dataPtr[0], fileName, &isTheSameFile);
 	
@@ -1637,11 +1719,7 @@ int mkdir2 (char *pathname)
 			//free(recordsBlock);
 
 			// dataPtr[1] não está vazio
-			if(directoryRecord->dataPtr[1] != -1  || 
-				directoryRecord->dataPtr[2] != -1  ||
-				directoryRecord->dataPtr[3] != -1  ||
-				directoryRecord->singleIndPtr != -1 || 
-				directoryRecord->doubleIndPtr != -1)
+			if(directoryRecord->dataPtr[1] != -1  || directoryRecord->singleIndPtr != -1 || directoryRecord->doubleIndPtr != -1)
 			{
 				// Carrega bloco do dataPtr[2]
 				fileRecord = findEmptyRecord(directoryRecord->dataPtr[1], fileName, &isTheSameFile);
@@ -1653,160 +1731,74 @@ int mkdir2 (char *pathname)
 				}
 				else
 				{
-					//free(recordsBlock);
-
-					// dataPtr[1] não está vazio
-					if(directoryRecord->dataPtr[2] != -1  ||
-						directoryRecord->dataPtr[3] != -1  ||
-						directoryRecord->singleIndPtr != -1 || 
-						directoryRecord->doubleIndPtr != -1)
+					if(directoryRecord->singleIndPtr != -1 || directoryRecord->doubleIndPtr != -1)
 					{
-						// Carrega bloco do dataPtr[2]
-						fileRecord = findEmptyRecord(directoryRecord->dataPtr[1], fileName, &isTheSameFile);
 
-						// Offset dentro do bloco para posição disponível
-						if(fileRecord != NULL)
-						{
-							recordBlock = directoryRecord->dataPtr[1];
-						}
-						else
-						{
-							//free(recordsBlock);
+						fileRecord = EmptyRecordSingleIndPtr(directoryRecord->singleIndPtr, &recordBlock, fileName, &isTheSameFile);
 
-							// dataPtr[1] não está vazio
-							if(directoryRecord->dataPtr[3] != -1  || 
-								directoryRecord->singleIndPtr != -1 || 
-								directoryRecord->doubleIndPtr != -1)
+						if (fileRecord == NULL)
+						{
+
+							if (directoryRecord->doubleIndPtr != -1)
 							{
-								// Carrega bloco do dataPtr[2]
-								fileRecord = findEmptyRecord(directoryRecord->dataPtr[3], fileName, &isTheSameFile);
 
-								// Offset dentro do bloco para posição disponível
-								if(fileRecord != NULL)
-								{
-									recordBlock = directoryRecord->dataPtr[3];
-								}
-								else
-								{
-
-									if(directoryRecord->singleIndPtr != -1 || 
-									directoryRecord->doubleIndPtr != -1)
-									{
-
-										fileRecord = EmptyRecordSingleIndPtr(directoryRecord->singleIndPtr, &recordBlock, fileName, &isTheSameFile);
-
-										if (fileRecord == NULL)
-										{
-
-											if (directoryRecord->doubleIndPtr != -1)
-											{
-
-												fileRecord = EmptyRecordDoubleIndPtr(directoryRecord->doubleIndPtr, &recordBlock, fileName, &isTheSameFile);
-												if (fileRecord == NULL) {
-													printf("%s", "5! - ");
-													return -1;
-												}
-											}
-											else
-											{
-												if(!areThereFreeBlocks(4)) {
-													printf("%s", "6! - ");
-													return -1;
-												}
-		
-					  							 freeBlock = findFreeBlock();
-					   							 allocateIndexBlock(freeBlock);
-					   							 directoryRecord->doubleIndPtr = freeBlock;
-
-												if (directoryBlock != -1)
-					   								writeRecord(directoryBlock, directoryRecord);
-												else
-													setSuperblockDoubleIndPtr(freeBlock);
-					   							// writeRecordsBlock(directoryBlock, directoryRecord);
-
-					   					 		fileRecord = EmptyRecordDoubleIndPtr(directoryRecord->doubleIndPtr, &recordBlock, fileName, &isTheSameFile);
-
-											}
-										}
-									}
-									else
-									{			
-										 if(!areThereFreeBlocks(3)){
-											printf("%s", "7! - ");
-											return -1;
-										}
-		
-					  					 freeBlock = findFreeBlock();
-					   					 allocateIndexBlock(freeBlock);
-					   					 directoryRecord->singleIndPtr = freeBlock;
-
-										if (directoryBlock != -1)
-					   						writeRecord(directoryBlock, directoryRecord);
-										else
-											setSuperblockSingleIndPtr(freeBlock);
-					   				        // writeRecordsBlock(directoryBlock, directoryRecord);
-
-					   					fileRecord = EmptyRecordSingleIndPtr(directoryRecord->singleIndPtr, &recordBlock, fileName, &isTheSameFile);
-									}
-								}
+								fileRecord = EmptyRecordDoubleIndPtr(directoryRecord->doubleIndPtr, &recordBlock, fileName, &isTheSameFile);
+								if (fileRecord == NULL)
+									return -1;
 							}
 							else
-							{	
-								// Se não possui 
-								if(!areThereFreeBlocks(2)){
-									printf("%s", "8! - ");
+							{
+								 if(!areThereFreeBlocks(3))
 									return -1;
-								}
-			
-								// Aloca bloco para records
-								freeBlock = findFreeBlock();
-								allocateRecordsBlock(freeBlock);
-								directoryRecord->dataPtr[3] = freeBlock;
+		
+	  							 freeBlock = findFreeBlock();
+	   							 allocateIndexBlock(freeBlock);
+	   							 directoryRecord->doubleIndPtr = freeBlock;
 
 								if (directoryBlock != -1)
-					   				writeRecord(directoryBlock, directoryRecord);
+	   								writeRecord(directoryBlock, directoryRecord);
 								else
-									setSuperblockDataPtr1(freeBlock);
+									setSuperblockDoubleIndPtr(freeBlock);
+	   							// writeRecordsBlock(directoryBlock, directoryRecord);
 
-								fileRecord = findEmptyRecord(directoryRecord->dataPtr[3], fileName, &isTheSameFile);
-								recordBlock = directoryRecord->dataPtr[3];
-								//writeRecordsBlock(directoryBlock, directoryRecord);	
+	   					 		fileRecord = EmptyRecordDoubleIndPtr(directoryRecord->doubleIndPtr, &recordBlock, fileName, &isTheSameFile);
+
+
+
 							}
-
-
+						
 						}
+								
+						
 					}
 					else
-					{	
-						// Se não possui 
-						if(!areThereFreeBlocks(2)){
-							printf("%s", "8! - ");
+					{			
+						 if(!areThereFreeBlocks(2))
 							return -1;
-						}
-	
-						// Aloca bloco para records
-						freeBlock = findFreeBlock();
-						allocateRecordsBlock(freeBlock);
-						directoryRecord->dataPtr[2] = freeBlock;
+		
+	  					 freeBlock = findFreeBlock();
+	   					 allocateIndexBlock(freeBlock);
+	   					 directoryRecord->singleIndPtr = freeBlock;
 
 						if (directoryBlock != -1)
-			   				writeRecord(directoryBlock, directoryRecord);
+	   						writeRecord(directoryBlock, directoryRecord);
 						else
-							setSuperblockDataPtr1(freeBlock);
+							setSuperblockSingleIndPtr(freeBlock);
+	   				        // writeRecordsBlock(directoryBlock, directoryRecord);
 
-						fileRecord = findEmptyRecord(directoryRecord->dataPtr[2], fileName, &isTheSameFile);
-						recordBlock = directoryRecord->dataPtr[2];
-						//writeRecordsBlock(directoryBlock, directoryRecord);	
+	   					fileRecord = EmptyRecordSingleIndPtr(directoryRecord->singleIndPtr, &recordBlock, fileName, &isTheSameFile);
+
 					}
+					
+
 				}
+
 			}
 			else
 			{	
 				// Se não possui 
-				if(!areThereFreeBlocks(2)){
-					printf("%s", "8! - ");
+				if(!areThereFreeBlocks(1))
 					return -1;
-				}
 				
 				// Aloca bloco para records
 				freeBlock = findFreeBlock();
@@ -1820,16 +1812,22 @@ int mkdir2 (char *pathname)
 
 				fileRecord = findEmptyRecord(directoryRecord->dataPtr[1], fileName, &isTheSameFile);
 				recordBlock = directoryRecord->dataPtr[1];
-				//writeRecordsBlock(directoryBlock, directoryRecord);	
+				//writeRecordsBlock(directoryBlock, directoryRecord);
+				
+
+					
+
 			}
+			
+
 		}
+			
+		
 	}
 	else
 	{
-		if(!areThereFreeBlocks(2)){
-			printf("%s", "9! - ");
+		if(!areThereFreeBlocks(1))
 			return -1;
-		}
 
 		// Aloca bloco para records
 		freeBlock = findFreeBlock();
@@ -1861,6 +1859,13 @@ int mkdir2 (char *pathname)
 
 	}
 
+
+	
+
+	
+
+
+
 	//emptyRecordBlock = findEmptyRecordsBlock(directoryRecord,&recordOffset, &recordBlock, fileName, directoryBlock);
 
 	newDirectoryRecord(fileName, fileRecord);
@@ -1868,16 +1873,15 @@ int mkdir2 (char *pathname)
 	/*if(fileRecord != NULL)
 		return -1;*/
 
-	writeNewDirectoryRecord(recordBlock, fileRecord, pathname);
+	writeNewDirectoryRecord(recordBlock, fileRecord, nome);
 
 	//printRecordBlock(emptyRecordBlock);
 
 	//printf("\nRecord Offset: %d \n Record Block: %d\n",recordOffset, recordBlock);
-	printf("%s", "0! - ");
+  
 	return 0;
 
 }
-
 
 void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome)
 {
@@ -1927,7 +1931,7 @@ t2fs_record * newDirectoryRecord(char * name, t2fs_record * newDirectoryRecord)
 
 }
 
-int rmdir2 (char *pathname)
+int t2fs_deleteDirectory (char *name)
 {
 
 	t2fs_record * fileRecord;
@@ -1939,15 +1943,15 @@ int rmdir2 (char *pathname)
 	char * fileName;
 	char * address;
 
-	if(!strcmp(pathname, "/"))
+	if(!strcmp(name, "/"))
 		return -1;
 
 	// Arquivo não encontrado
-	if(getNameAddress(pathname, &fileName, &address) == -1)
+	if(getNameAddress(name, &fileName, &address) == -1)
 		return -1;
 
 	// Acha o arquivo
-	fileRecord = findRecord(pathname,TYPEVAL_DIRETORIO,&fileRecordBlock);
+	fileRecord = findRecord(name,TYPEVAL_DIRETORIO,&fileRecordBlock);
 
 	// Não encontrou o arquivo
 	if(fileRecord == NULL)
@@ -1998,23 +2002,36 @@ int rmdir2 (char *pathname)
 
 }
 
-DIR2 opendir2 (char *pathname){
-	DIR2 dir2 = 0;
-	return dir2;
-}
-
-int readdir2 (DIR2 handle, DIRENT2 *dentry){
-	return 0;
-}
-
-int closedir2 (DIR2 handle){
-	return 0;
-}
-
 int chdir2 (char *pathname){
-	return 0;
+    DWORD block;
+    	
+   printf("\n\npai<%s>curdir<%s> pathname<%s>",getCurUpDir(),getCurDir(),pathname);
+   
+	setName(&pathname);//Verifica se endereço é relativou ou não
+	
+   printf("\n\npai<%s>curdir<%s> pathname<%s>",getCurUpDir(),getCurDir(),pathname);
+	if(findRecord(pathname,TYPEVAL_DIRETORIO,&block) == NULL)//Diretório não existe!
+	{
+		return -1;
+	}
+	
+
+	setBar(&pathname);
+	   printf("\n\nIIIIIIIIIII\n\n");	 
+    setCurDir(pathname); //Seta diretório corrente
+	   printf("\n\nIIIIIIIIIII\n\n");	  
+	setUpAddress(pathname); //Seta pai do diretorio corrente
+    printf("\n\nIIIIIIIIIII\n\n");	
+	
+	// printf("\n\npai<%s>curdir<%s> pathname<%s>",getCurUpDir(),getCurDir(),pathname);
+    return 0;
+
+}
+int getcwd2 (char *pathname, int size){
+
+
+return 0;
+
+
 }
 
-int getcwd2 (char *pathname, int size){
-	return 0;
-}
