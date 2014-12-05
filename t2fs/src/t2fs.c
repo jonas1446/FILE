@@ -7,19 +7,24 @@
 #include <diskblocks.h>
 #include <filecontrol.h>
 
-char *authors;
+char* authors= "Jonas Ribeiro Flores (171607) e Lucas Herbert Jones (124631)";
 
 /** Informa a identificação dos desenvolvedores do T2FS. */
 int identify2 (char *name, int size)
 {
-	int i;
-	for(i=0;i<size;i++) {
-		if(name[i] < 32 || name[i] > 122) return -1;
-	}	
-	//printf("%s", authors); 
-	authors = malloc(size);
-	memcpy(authors, name, size);
-	return 0;
+int i;
+for(i=0;i<size;i++) {
+if(name[i] < 32 || name[i] > 122) return -1;
+}	
+
+
+ if(strlen(authors + 1)< size){//Automaticamente se coloca '\0' no final
+    strncpy(*name, authors,size);
+    }else{
+	 return -1;
+	}
+
+return 0;
 }
 
 FILE2 create2 (char *filename)

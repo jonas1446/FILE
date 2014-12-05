@@ -1,8 +1,3 @@
-
-
-#ifndef DISKBLOCKS_H
-#define DISKBLOCKS_H
-
 #include <t2fs.h>
 
 #define SECTOR_SIZE 256
