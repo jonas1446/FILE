@@ -7,6 +7,8 @@
 #include <diskblocks.h>
 #include <filecontrol.h>
 
+char* authors= "Jonas Ribeiro Flores (171607) e Lucas Herbert Jones (124631)";
+
 /** Informa a identificação dos desenvolvedores do T2FS. */
 int identify2 (char *name, int size)
 {
@@ -14,10 +16,14 @@ int identify2 (char *name, int size)
 	for(i=0;i<size;i++) {
 		if(name[i] < 32 || name[i] > 122) return -1;
 	}	
-	//printf("%s", authors); 
-	char authors[62] = "Jonas Ribeiro Flores (171607) e Lucas Herbert Jones (124631)";
-	strncpy(name, authors, size);
+	if(strlen(authors + 1)< size){//Automaticamente se coloca '\0' no final
+		strncpy(*name, authors,size);
+	}else{
+		return -1;
+	}
+
 	return 0;
+
 }
 
 FILE2 create2 (char *filename)
@@ -1938,15 +1944,12 @@ int chdir2 (char *pathname){
 
 int getcwd2 (char *pathname, int size){
 
-	printf("%s", "getcwd \n");	
-	printf("	curaddr %s\n", getCurDir());
-	printf("	sizeof(curaddr) %d\n", strlen(getCurDir()));
-	if(size < strlen(getCurDir()))
-	{	
-		return -1;
+   if(strlen(getCurDir() + 1)< size){//Automaticamente se coloca '\0' no final
+    strncpy(*pathname, getCurDir(),size);
+    }else{
+	 return -1;
 	}
 
-	printf("	pathname %s\n", pathname);
 	return 0;
 }
 
@@ -2023,7 +2026,6 @@ int getDataPtr(unsigned int block){
 }
 
 void getSingleIndPtr(unsigned int block){
-
 	DWORD * loadedBlock;
 	int i = 0;
 

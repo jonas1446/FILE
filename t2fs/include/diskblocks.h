@@ -1,8 +1,3 @@
-
-
-#ifndef DISKBLOCKS_H
-#define DISKBLOCKS_H
-
 #include <t2fs.h>
 
 #define SECTOR_SIZE 256
@@ -55,6 +50,3 @@ void setSuperblockSingleIndPtr(DWORD block);
 void setSuperblockDataPtr0(DWORD block);
 void setSuperblockDataPtr1(DWORD block);
 void setSuperblockFileSize(DWORD bytes, DWORD blocks);
-
-
-#endif
