@@ -7,8 +7,6 @@
 #include <diskblocks.h>
 #include <filecontrol.h>
 
-char *authors;
-
 /** Informa a identificação dos desenvolvedores do T2FS. */
 int identify2 (char *name, int size)
 {
@@ -17,8 +15,8 @@ int identify2 (char *name, int size)
 		if(name[i] < 32 || name[i] > 122) return -1;
 	}	
 	//printf("%s", authors); 
-	authors = malloc(size);
-	memcpy(authors, name, size);
+	char authors[62] = "Jonas Ribeiro Flores (171607) e Lucas Herbert Jones (124631)";
+	strncpy(name, authors, size);
 	return 0;
 }
 
@@ -1916,22 +1914,22 @@ int rmdir2 (char *pathname)
 int chdir2 (char *pathname){
     DWORD block;
     	
-	printf("\n\npai<%s>curdir<%s> pathname<%s>",getCurUpDir(),getCurDir(),pathname);
+	//printf("\n\npai<%s>curdir<%s> pathname<%s>",getCurUpDir(),getCurDir(),pathname);
    
 	setName(&pathname);//Verifica se endereço é relativou ou não
 	
-	printf("\n\npai<%s>curdir<%s> pathname<%s>",getCurUpDir(),getCurDir(),pathname);
+	//printf("\n\npai<%s>curdir<%s> pathname<%s>",getCurUpDir(),getCurDir(),pathname);
 	if(findRecord(pathname,TYPEVAL_DIRETORIO,&block) == NULL)//Diretório não existe!
 	{
 		return -1;
 	}
 
 	setBar(&pathname);
-		printf("\n\nIIIIIIIIIII\n\n");	 
+		//printf("\n\nIIIIIIIIIII\n\n");	 
     	setCurDir(pathname); //Seta diretório corrente
-		printf("\n\nIIIIIIIIIII\n\n");	  
+		//printf("\n\nIIIIIIIIIII\n\n");	  
 	setUpAddress(pathname); //Seta pai do diretorio corrente
-		printf("\n\nIIIIIIIIIII\n\n");	
+		//printf("\n\nIIIIIIIIIII\n\n");	
 	
 	// printf("\n\npai<%s>curdir<%s> pathname<%s>",getCurUpDir(),getCurDir(),pathname);
     return 0;
@@ -1940,57 +1938,70 @@ int chdir2 (char *pathname){
 
 int getcwd2 (char *pathname, int size){
 
-	/*printf("curaddr %s\n", getCurDir());
-	printf("sizeof(curaddr) %d\n", sizeof(getCurDir()));
-	if(size < sizeof(getCurDir()))
-	pathname = strdup(getCurDir());
-	printf("pathname %s\n", pathname);*/
+	printf("%s", "getcwd \n");	
+	printf("	curaddr %s\n", getCurDir());
+	printf("	sizeof(curaddr) %d\n", strlen(getCurDir()));
+	if(size < strlen(getCurDir()))
+	{	
+		return -1;
+	}
+
+	printf("	pathname %s\n", pathname);
 	return 0;
 }
+
+int currententry = -1;
 
 int readdir2(DIR2 handle, DIRENT2 *dentry) {
 	
-	return 0;
+	t2fs_record * loadedBlock;
+
+	loadedBlock = loadRecordsBlock(handle);
+
+	// get nextRecord
+
+	// add to dentry
+
+	// set currententry;
 }
-
-void dirt2(char* nome){
-
-	t2fs_record * sameNameFileRecord = NULL;
+/**
+int nextRecord(DIR2 handle, int previewRecord){
 	unsigned int freeBlock;
-	
-	sameNameFileRecord = findRecord(nome, TYPEVAL_DIRETORIO, &freeBlock);
+	int found = 0;
+	t2fs_record * loadedBlock;
+	loadedBlock = loadRecordsBlock(handle);
 
-	if(sameNameFileRecord != NULL)
+	if(loadedBlock != NULL)
 	{
-		if (sameNameFileRecord->dataPtr[0] != -1)
-			dirt2DataPtr(sameNameFileRecord->dataPtr[0]);
+		if (previewRecord == 0 && loadedBlock->dataPtr[0] != -1)
+			return getDataPtr(loadedBlock->dataPtr[0]);
 
-		if( sameNameFileRecord->dataPtr[1] != -1)
-			dirt2DataPtr(sameNameFileRecord->dataPtr[1]);
+		if(previewRecord  loadedBlock->dataPtr[1] != -1)
+			return getDataPtr(loadedBlock->dataPtr[1]);
 
-		if (sameNameFileRecord->dataPtr[2] != -1)
-			dirt2DataPtr(sameNameFileRecord->dataPtr[2]);
+		if (loadedBlock->dataPtr[2] != -1)
+			return getDataPtr(loadedBlock->dataPtr[2]);
 
-		if( sameNameFileRecord->dataPtr[3] != -1)
-			dirt2DataPtr(sameNameFileRecord->dataPtr[3]);
+		if( loadedBlock->dataPtr[3] != -1)
+			return getDataPtr(loadedBlock->dataPtr[3]);
 
-		if (sameNameFileRecord->singleIndPtr != -1)
-			dirt2SingleIndPtr(sameNameFileRecord->singleIndPtr);
+		if (loadedBlock->singleIndPtr != -1)
+			return getSingleIndPtr(loadedBlock->singleIndPtr);
 
-		if( sameNameFileRecord->doubleIndPtr != -1)
-			dirt2DoubleIndPtr(sameNameFileRecord->doubleIndPtr);
+		if( loadedBlock->doubleIndPtr != -1)
+			return getDoubleIndPtr(loadedBlock->doubleIndPtr);
 	}
 }
 
 
-void dirt2DataPtr(unsigned int block){
+int getDataPtr(unsigned int block){
 
 	t2fs_record * loadedBlock;
 	int i = 0;
 	
 	loadedBlock = loadRecordsBlock(block);
-
-
+	
+	
 	while(i < BLOCK_SIZE / RECORD_SIZE)
 	{
 		if (((loadedBlock[i].TypeVal == TYPEVAL_REGULAR) || (loadedBlock[i].TypeVal == TYPEVAL_DIRETORIO)))
@@ -2005,13 +2016,13 @@ void dirt2DataPtr(unsigned int block){
 			printf("    %3d   %5d bytes", loadedBlock[i].blocksFileSize, loadedBlock[i].bytesFileSize);
 
 		}
-		i++;	
+		i++;
 		
 	}
 
 }
 
-void dirt2SingleIndPtr(unsigned int block){
+void getSingleIndPtr(unsigned int block){
 
 	DWORD * loadedBlock;
 	int i = 0;
@@ -2021,13 +2032,13 @@ void dirt2SingleIndPtr(unsigned int block){
 	while (i != sizeof(loadedBlock)){
 
 		if (loadedBlock[i] != -1)
-			dirt2DataPtr(loadedBlock[i]);
+			getDataPtr(loadedBlock[i]);
 		i++;
 	}
 }
 
 
-void dirt2DoubleIndPtr(unsigned int block){
+void getDoubleIndPtr(unsigned int block){
 
 	DWORD * loadedBlock;
 	int i = 0;
@@ -2037,14 +2048,14 @@ void dirt2DoubleIndPtr(unsigned int block){
 	while (i != sizeof(loadedBlock)){
 
 		if (loadedBlock[i] != -1)
-			dirt2SingleIndPtr(loadedBlock[i]);
+			getSingleIndPtr(loadedBlock[i]);
 		i++;
 	}
 	
 	
 }
 
-
+*/
 void setName(char ** nome){
     
 	char* nome_ = *nome;
@@ -2062,7 +2073,7 @@ void setName(char ** nome){
        *nome = (char*) malloc(strlen(getCurUpDir()) + strlen(*nome) -3);
        *nome = nomeaux;
 		
-		// printf("AAAAAAAAAAAAAAAA%sAAAAAAAAAAAA",nomeaux);   
+		// printf("AAAAAAAAAAAAAAAA %s AAAAAAAAAAAA",nomeaux);   
   
 	}
 	//Aponta para si próprio
