@@ -7,19 +7,24 @@
 #include <diskblocks.h>
 #include <filecontrol.h>
 
-char *authors;
+char* authors= "Jonas Ribeiro Flores (171607) e Lucas Herbert Jones (124631)";
 
 /** Informa a identificação dos desenvolvedores do T2FS. */
 int identify2 (char *name, int size)
 {
-	int i;
-	for(i=0;i<size;i++) {
-		if(name[i] < 32 || name[i] > 122) return -1;
-	}	
-	//printf("%s", authors); 
-	authors = malloc(size);
-	memcpy(authors, name, size);
-	return 0;
+int i;
+for(i=0;i<size;i++) {
+if(name[i] < 32 || name[i] > 122) return -1;
+}	
+
+
+ if(strlen(authors + 1)< size){//Automaticamente se coloca '\0' no final
+    strncpy(*name, authors,size);
+    }else{
+	 return -1;
+	}
+
+return 0;
 }
 
 FILE2 create2 (char *filename)
@@ -1940,11 +1945,12 @@ int chdir2 (char *pathname){
 
 int getcwd2 (char *pathname, int size){
 
-	/*printf("curaddr %s\n", getCurDir());
-	printf("sizeof(curaddr) %d\n", sizeof(getCurDir()));
-	if(size < sizeof(getCurDir()))
-	pathname = strdup(getCurDir());
-	printf("pathname %s\n", pathname);*/
+   if(strlen(getCurDir() + 1)< size){//Automaticamente se coloca '\0' no final
+    strncpy(*pathname, getCurDir(),size);
+    }else{
+	 return -1;
+	}
+
 	return 0;
 }
 
@@ -1953,7 +1959,7 @@ int readdir2(DIR2 handle, DIRENT2 *dentry) {
 	return 0;
 }
 
-void dirt2(char* nome){
+void readd(char* nome){
 
 	t2fs_record * sameNameFileRecord = NULL;
 	unsigned int freeBlock;
@@ -1963,27 +1969,27 @@ void dirt2(char* nome){
 	if(sameNameFileRecord != NULL)
 	{
 		if (sameNameFileRecord->dataPtr[0] != -1)
-			dirt2DataPtr(sameNameFileRecord->dataPtr[0]);
+			readdDataPtr(sameNameFileRecord->dataPtr[0]);
 
 		if( sameNameFileRecord->dataPtr[1] != -1)
-			dirt2DataPtr(sameNameFileRecord->dataPtr[1]);
+			readdDataPtr(sameNameFileRecord->dataPtr[1]);
 
 		if (sameNameFileRecord->dataPtr[2] != -1)
-			dirt2DataPtr(sameNameFileRecord->dataPtr[2]);
+			readdDataPtr(sameNameFileRecord->dataPtr[2]);
 
 		if( sameNameFileRecord->dataPtr[3] != -1)
-			dirt2DataPtr(sameNameFileRecord->dataPtr[3]);
+			readdDataPtr(sameNameFileRecord->dataPtr[3]);
 
 		if (sameNameFileRecord->singleIndPtr != -1)
-			dirt2SingleIndPtr(sameNameFileRecord->singleIndPtr);
+			readdSingleIndPtr(sameNameFileRecord->singleIndPtr);
 
 		if( sameNameFileRecord->doubleIndPtr != -1)
-			dirt2DoubleIndPtr(sameNameFileRecord->doubleIndPtr);
+			readdDoubleIndPtr(sameNameFileRecord->doubleIndPtr);
 	}
 }
 
 
-void dirt2DataPtr(unsigned int block){
+void readdDataPtr(unsigned int block){
 
 	t2fs_record * loadedBlock;
 	int i = 0;
@@ -2011,7 +2017,7 @@ void dirt2DataPtr(unsigned int block){
 
 }
 
-void dirt2SingleIndPtr(unsigned int block){
+void readdSingleIndPtr(unsigned int block){
 
 	DWORD * loadedBlock;
 	int i = 0;
@@ -2021,13 +2027,13 @@ void dirt2SingleIndPtr(unsigned int block){
 	while (i != sizeof(loadedBlock)){
 
 		if (loadedBlock[i] != -1)
-			dirt2DataPtr(loadedBlock[i]);
+			readdDataPtr(loadedBlock[i]);
 		i++;
 	}
 }
 
 
-void dirt2DoubleIndPtr(unsigned int block){
+void readdDoubleIndPtr(unsigned int block){
 
 	DWORD * loadedBlock;
 	int i = 0;
@@ -2037,7 +2043,7 @@ void dirt2DoubleIndPtr(unsigned int block){
 	while (i != sizeof(loadedBlock)){
 
 		if (loadedBlock[i] != -1)
-			dirt2SingleIndPtr(loadedBlock[i]);
+			readdSingleIndPtr(loadedBlock[i]);
 		i++;
 	}
 	

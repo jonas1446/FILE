@@ -160,10 +160,10 @@ void printRecordBlock(unsigned int block);
 void printDataBlock(unsigned int block);
 void printIndexBlock(unsigned int block);
 
-void dirt2(char* nome);
-void dirt2DataPtr(unsigned int block);
-void dirt2SingleIndPtr(unsigned int block);
-void dirt2DoubleIndPtr(unsigned int block);
+void readd(char* nome);
+void readdDataPtr(unsigned int block);
+void readdSingleIndPtr(unsigned int block);
+void readdDoubleIndPtr(unsigned int block);
 
 t2fs_record * newDirectoryRecord(char * name, t2fs_record * newDirectoryRecord);
 void writeNewDirectoryRecord (unsigned int recordBlock, t2fs_record* fileRecord, char* nome);
